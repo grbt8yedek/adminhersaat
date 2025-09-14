@@ -503,6 +503,30 @@ export default function SystemStatus() {
     }
   }
 
+  const handleGitLabBackup = async () => {
+    setBackupLoading(true)
+    try {
+      const response = await fetch('/api/system/backup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'gitlab' })
+      })
+      const data = await response.json()
+
+      if (data.success) {
+        alert(`✅ GitLab yedekleme başarıyla tamamlandı!\n\n📁 Repository: ${data.repository}\n📊 Boyut: ${data.size}\n⏰ Tarih: ${new Date(data.timestamp).toLocaleString('tr-TR')}\n\n${data.files.length} dosya yüklendi:\n${data.files.map((f: any) => `• ${f.file}: ${f.status}`).join('\n')}`)
+        await fetchBackupStatus() // Durumu yenile
+      } else {
+        alert(`❌ GitLab yedekleme başarısız!\n\n${data.error}`)
+      }
+    } catch (error) {
+      alert('❌ GitLab yedekleme sırasında hata oluştu!')
+      console.error('GitLab Backup Error:', error)
+    } finally {
+      setBackupLoading(false)
+    }
+  }
+
   const handleToggleBackup = async () => {
     setBackupLoading(true)
     try {
@@ -981,6 +1005,14 @@ export default function SystemStatus() {
             >
               <Download className="h-4 w-4" />
               <span>{backupLoading ? 'Oluşturuluyor...' : 'Manuel Yedekleme'}</span>
+            </button>
+            <button 
+              onClick={handleGitLabBackup}
+              disabled={backupLoading}
+              className="flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50"
+            >
+              <Download className="h-4 w-4" />
+              <span>{backupLoading ? 'GitLab\'a Yedekleniyor...' : 'GitLab\'a Yedekle'}</span>
             </button>
             <button 
               onClick={handleToggleBackup}
