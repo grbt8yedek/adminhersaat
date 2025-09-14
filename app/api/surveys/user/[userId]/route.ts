@@ -6,35 +6,25 @@ export async function GET(request: Request, { params }: { params: { userId: stri
   try {
     const { userId } = params
 
-    // Vercel production ortamında SQLite erişimi yok
-    if (process.env.NODE_ENV === 'production') {
-      return NextResponse.json({
-        success: false,
-        message: 'Bu özellik production ortamında kullanılamaz'
-      }, { status: 501 })
-    }
+    // Neon PostgreSQL'den kullanıcının anket cevaplarını getir
+    const surveyResponses = await prisma.surveyResponse.findMany({
+      where: {
+        userId: userId
+      },
+      orderBy: {
+        completedAt: 'desc'
+      },
+      take: 1 // En son anket cevabını al
+    })
 
-    // Local development için SQLite bağlantısı
-    const Database = require('better-sqlite3')
-    const db = new Database('/Users/incesu/Desktop/grbt8/prisma/dev.db')
-    
-    // Kullanıcının en son anket cevabını getir
-    const stmt = db.prepare(`
-      SELECT * FROM SurveyResponse 
-      WHERE userId = ? 
-      ORDER BY completedAt DESC 
-      LIMIT 1
-    `)
-    
-    const surveyResponse = stmt.get(userId)
-    db.close()
-
-    if (!surveyResponse) {
+    if (!surveyResponses || surveyResponses.length === 0) {
       return NextResponse.json({
         success: false,
         message: 'Anket cevabı bulunamadı'
       }, { status: 404 })
     }
+
+    const surveyResponse = surveyResponses[0]
 
     // JSON string'i parse et ve düzenli format'a çevir
     let formattedAnswers: Array<{question: string, answer: string}> = []
