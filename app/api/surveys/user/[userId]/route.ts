@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
 
 // Ana sitedeki SQLite veritabanından kullanıcının anket cevaplarını getir
 export async function GET(request: Request, { params }: { params: { userId: string } }) {
@@ -109,6 +110,38 @@ export async function GET(request: Request, { params }: { params: { userId: stri
 
   } catch (error: any) {
     console.error('Error fetching survey response:', error)
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
+}
+
+// Ana siteden gelen anket cevaplarını admin panelde kaydet
+export async function POST(request: Request, { params }: { params: { userId: string } }) {
+  try {
+    const { userId } = params
+    const body = await request.json()
+    const { answers, completedAt, userAgent, ipAddress } = body
+
+    // Neon PostgreSQL'de anket cevabını kaydet
+    const surveyResponse = await prisma.surveyResponse.create({
+      data: {
+        userId: userId,
+        answers: JSON.stringify(answers),
+        completedAt: new Date(completedAt),
+        userAgent: userAgent || '',
+        ipAddress: ipAddress || '',
+      },
+    })
+
+    return NextResponse.json({
+      success: true,
+      message: 'Anket cevabı admin paneline kaydedildi',
+      id: surveyResponse.id
+    })
+
+  } catch (error: any) {
+    console.error('Error saving survey response:', error)
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
