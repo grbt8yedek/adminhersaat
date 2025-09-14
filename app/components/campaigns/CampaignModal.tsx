@@ -7,6 +7,7 @@ interface Campaign {
   title: string
   description: string
   imageUrl: string
+  imageData?: string  // Base64 image data - Neon database'de sakla
   altText: string
   linkUrl: string
   status: 'active' | 'inactive'
@@ -32,6 +33,7 @@ export default function CampaignModal({ isOpen, onClose, campaign, onSave }: Cam
     title: '',
     description: '',
     imageUrl: '',
+    imageData: '',  // Base64 image data
     altText: '',
     linkUrl: '',
     status: 'active',
@@ -57,6 +59,7 @@ export default function CampaignModal({ isOpen, onClose, campaign, onSave }: Cam
         title: '',
         description: '',
         imageUrl: '',
+        imageData: '',  // Base64 image data
         altText: '',
         linkUrl: '',
         status: 'active',
@@ -90,20 +93,18 @@ export default function CampaignModal({ isOpen, onClose, campaign, onSave }: Cam
 
       if (response.ok) {
         const data = await response.json()
-        setFormData(prev => ({ ...prev, imageUrl: data.url }))
+        setFormData(prev => ({ ...prev, imageUrl: data.url, imageData: data.url }))
         setImagePreview(data.url)
         setUploadSuccess(true)
         
         // 3 saniye sonra başarı mesajını kaldır
         setTimeout(() => setUploadSuccess(false), 3000)
       } else {
-        const errorData = await response.json().catch(() => ({ error: 'Bilinmeyen hata' }))
-        console.error('Upload error:', errorData)
-        alert(`Resim yükleme hatası: ${errorData.error || 'Bilinmeyen hata'}`)
+        alert('Resim yükleme hatası')
       }
     } catch (error) {
       console.error('Upload error:', error)
-      alert(`Resim yükleme hatası: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`)
+      alert('Resim yükleme hatası')
     } finally {
       setIsLoading(false)
     }

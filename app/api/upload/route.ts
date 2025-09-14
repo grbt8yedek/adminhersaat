@@ -55,18 +55,12 @@ export async function POST(request: NextRequest) {
     const extension = file.name.split('.').pop()
     const fileName = `campaign_${timestamp}.${extension}`
 
-    // Uploads klasörünü oluştur
-    const uploadsDir = join(process.cwd(), 'public', 'uploads', 'campaigns')
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true })
-    }
+    // Neon database'de saklamak için base64'e çevir
+    const base64 = buffer.toString('base64')
+    const dataUrl = `data:${file.type};base64,${base64}`
 
-    // Dosyayı kaydet
-    const filePath = join(uploadsDir, fileName)
-    await writeFile(filePath, buffer)
-
-    // URL'yi oluştur
-    const fileUrl = `/uploads/campaigns/${fileName}`
+    // Base64 data URL'yi döndür (Neon database'de saklanacak)
+    const fileUrl = dataUrl
 
     return corsMiddleware(NextResponse.json({
       success: true,

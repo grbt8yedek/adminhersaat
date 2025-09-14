@@ -74,6 +74,11 @@ export async function POST(request: NextRequest) {
       campaignData.imageUrl = body.imageUrl
     }
     
+    // imageData sadece boş değilse ekle (Neon database'de sakla)
+    if (body.imageData && body.imageData.trim() !== '') {
+      campaignData.imageData = body.imageData
+    }
+    
     const campaign = await prisma.campaign.create({
       data: campaignData
     })
@@ -137,6 +142,11 @@ export async function PUT(request: NextRequest) {
     // imageUrl sadece boş değilse ekle
     if (body.imageUrl && body.imageUrl.trim() !== '') {
       campaignData.imageUrl = body.imageUrl
+    }
+    
+    // imageData sadece boş değilse ekle (Neon database'de sakla)
+    if (body.imageData && body.imageData.trim() !== '') {
+      campaignData.imageData = body.imageData
     }
 
     const campaign = await prisma.campaign.update({

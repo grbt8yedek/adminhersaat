@@ -194,6 +194,7 @@ model Campaign {
   title       String
   description String?
   imageUrl    String?  // Görsel URL'i - Opsiyonel
+  imageData   String?  // Base64 image data - Neon database'de sakla
   altText     String   // Alt text
   linkUrl     String?  // Tıklanınca gidilecek URL
   status      String   @default("active") // active, inactive
