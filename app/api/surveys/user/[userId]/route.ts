@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-// Ana sitedeki SQLite veritabanından kullanıcının anket cevaplarını getir
+// Neon PostgreSQL'den kullanıcının anket cevaplarını getir
 export async function GET(request: Request, { params }: { params: { userId: string } }) {
   try {
     const { userId } = params
@@ -104,6 +104,7 @@ export async function GET(request: Request, { params }: { params: { userId: stri
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
+  }
 }
 
 // Ana siteden gelen anket cevaplarını admin panelde kaydet
