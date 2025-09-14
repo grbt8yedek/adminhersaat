@@ -514,7 +514,10 @@ export default function SystemStatus() {
       const data = await response.json()
 
       if (data.success) {
-        alert(`✅ GitLab yedekleme başarıyla tamamlandı!\n\n📁 Repository: ${data.repository}\n📊 Boyut: ${data.size}\n⏰ Tarih: ${new Date(data.timestamp).toLocaleString('tr-TR')}\n\n${data.files.length} dosya yüklendi:\n${data.files.map((f: any) => `• ${f.file}: ${f.status}`).join('\n')}`)
+        const successCount = data.files.filter((f: any) => f.status.includes('✅')).length
+        const errorCount = data.files.filter((f: any) => f.status.includes('❌')).length
+        
+        alert(`✅ GitLab yedekleme başarıyla tamamlandı!\n\n📁 Repository: ${data.repository}\n📊 Yedek Adı: ${data.backupName}\n⏰ Tarih: ${new Date(data.timestamp).toLocaleString('tr-TR')}\n\n📂 Yedekleme Yapısı:\n• admin-panel/: Admin paneli kaynak kodları\n• ana-site/: Ana site kaynak kodları\n• database/: Veritabanı yedekleme\n• uploads/: Yüklenen dosyalar\n\n📈 İstatistikler:\n• Toplam dosya: ${data.files.length}\n• Başarılı: ${successCount}\n• Hatalı: ${errorCount}\n\n🔗 GitLab'da görüntülemek için: ${data.repository}`)
         await fetchBackupStatus() // Durumu yenile
       } else {
         alert(`❌ GitLab yedekleme başarısız!\n\n${data.error}`)
@@ -993,6 +996,44 @@ export default function SystemStatus() {
             </div>
             <div className="mt-3 text-sm text-gray-600">
               <p><strong>Zamanlama:</strong> {backupStatus.config.schedule}</p>
+            </div>
+          </div>
+
+          {/* Yedekleme Yapısı Bilgisi */}
+          <div className="bg-blue-50 rounded-lg p-4 mb-4">
+            <h4 className="text-sm font-medium text-blue-800 mb-3">📂 GitLab Yedekleme Yapısı</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <span className="text-blue-700 font-medium">admin-panel/</span>
+                </div>
+                <p className="text-blue-600 text-xs ml-4">Admin paneli kaynak kodları ve konfigürasyon</p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <span className="text-green-700 font-medium">ana-site/</span>
+                </div>
+                <p className="text-green-600 text-xs ml-4">Ana site kaynak kodları ve konfigürasyon</p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                  <span className="text-purple-700 font-medium">database/</span>
+                </div>
+                <p className="text-purple-600 text-xs ml-4">Veritabanı yedekleme dosyaları</p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                  <span className="text-orange-700 font-medium">uploads/</span>
+                </div>
+                <p className="text-orange-600 text-xs ml-4">Yüklenen dosyalar ve medya</p>
+              </div>
+            </div>
+            <div className="mt-3 text-xs text-blue-600">
+              <p>💡 <strong>Not:</strong> GitLab yedekleme sistemi artık organize bir klasör yapısında çalışmaktadır. Her yedekleme tarih bazlı klasörlerde saklanır.</p>
             </div>
           </div>
 
