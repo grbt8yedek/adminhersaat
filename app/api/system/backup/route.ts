@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
           source: 'backup',
           metadata: {
             backupPath: result.path,
-            size: result.size
+            size: 'N/A'
           }
         })
       }
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
           metadata: {
             repository: result.repository,
             files: result.files,
-            size: result.size
+            size: 'N/A'
           }
         })
       }
