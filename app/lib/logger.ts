@@ -8,16 +8,6 @@ interface LogData {
   metadata?: string | object
 }
 
-import { prisma } from './prisma'
-
-interface LogData {
-  level: 'INFO' | 'WARNING' | 'ERROR' | 'DEBUG'
-  message: string
-  source?: string
-  userId?: string
-  metadata?: string | object
-}
-
 export async function createLog(logData: LogData) {
   try {
     // Prisma client'ın hazır olup olmadığını kontrol et
