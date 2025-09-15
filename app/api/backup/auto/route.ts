@@ -228,7 +228,7 @@ async function createUploadBackup() {
     const uploadFiles: any[] = []
     
     // Uploads klasörünü tara
-    async function scanDirectory(dir: string, basePath: string = '') {
+    const scanDirectory = async (dir: string, basePath: string = '') => {
       try {
         const items = await fs.readdir(dir)
         
