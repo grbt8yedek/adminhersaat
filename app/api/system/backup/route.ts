@@ -1282,12 +1282,13 @@ async function createMainSiteGitHubBackup() {
     
     const uploadResults: any[] = []
     
-    // 1. Ana site kaynak kodlarını GitHub'dan çek
+    // 1. Ana site kaynak kodlarını GitHub'dan çek ve yedekle
     console.log('Ana site kaynak kodları GitHub\'dan çekiliyor...')
     const mainSiteData = await fetchMainSiteFromGitHub()
     
-    if (mainSiteData.success) {
-      const result = await uploadFileToGitHub(
+    if (mainSiteData.success && mainSiteData.data) {
+      // README dosyası oluştur
+      const readmeResult = await uploadFileToGitHub(
         `${backupName}/ana-site/README.md`,
         `# Ana Site Yedekleme - ${now.toLocaleString('tr-TR')}
 
@@ -1299,6 +1300,7 @@ async function createMainSiteGitHubBackup() {
 
 ## İçerik
 - Ana site kaynak kodları GitHub'dan çekildi
+- Toplam dosya: ${mainSiteData.data.length}
 - Database yedekleme (varsa)
 - Sistem durumu kaydedildi
 
@@ -1310,24 +1312,72 @@ async function createMainSiteGitHubBackup() {
         GITHUB_TOKEN,
         BRANCH
       )
-      uploadResults.push(result)
+      uploadResults.push(readmeResult)
       
-      // Ana site içeriğini yedekle
-      const siteContentResult = await uploadFileToGitHub(
-        `${backupName}/ana-site/site-content.json`,
+      // Ana site dosyalarını tek tek yedekle
+      console.log(`Ana site ${mainSiteData.data.length} dosya yedekleniyor...`)
+      for (const item of mainSiteData.data) {
+        if (item.type === 'file') {
+          try {
+            // Dosya içeriğini çek
+            const fileResponse = await fetch(item.download_url)
+            if (fileResponse.ok) {
+              const fileContent = await fileResponse.text()
+              
+              const fileResult = await uploadFileToGitHub(
+                `${backupName}/ana-site/files/${item.name}`,
+                fileContent,
+                REPO_OWNER,
+                REPO_NAME,
+                GITHUB_TOKEN,
+                BRANCH
+              )
+              uploadResults.push(fileResult)
+            }
+          } catch (error) {
+            console.log(`Dosya yedekleme hatası: ${item.name}`, error)
+            uploadResults.push({
+              file: `${backupName}/ana-site/files/${item.name}`,
+              status: `❌ Hata: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              size: 0
+            })
+          }
+        }
+      }
+      
+      // Ana site özet bilgisi
+      const summaryResult = await uploadFileToGitHub(
+        `${backupName}/ana-site/backup-summary.json`,
         JSON.stringify({
           timestamp: now.toISOString(),
           source_url: 'https://anasite.grbt8.store/',
+          source_repo: 'https://github.com/Depogrbt8/anasiteotoyedek',
           backup_type: 'main_site',
-          status: 'completed',
-          notes: 'Ana site içeriği GitHub repository\'den alındı'
+          total_files: mainSiteData.data.length,
+          files_backed_up: uploadResults.filter(r => r.status.includes('✅')).length,
+          status: 'completed'
         }, null, 2),
         REPO_OWNER,
         REPO_NAME,
         GITHUB_TOKEN,
         BRANCH
       )
-      uploadResults.push(siteContentResult)
+      uploadResults.push(summaryResult)
+    } else {
+      // Hata durumunda bilgi dosyası oluştur
+      const errorResult = await uploadFileToGitHub(
+        `${backupName}/ana-site/error.txt`,
+        `Ana site kaynak kodları alınamadı.
+Tarih: ${now.toLocaleString('tr-TR')}
+Hata: ${mainSiteData.error || 'Bilinmeyen hata'}
+
+GitHub API'den veri çekilemedi.`,
+        REPO_OWNER,
+        REPO_NAME,
+        GITHUB_TOKEN,
+        BRANCH
+      )
+      uploadResults.push(errorResult)
     }
     
     // 2. Database yedekleme (eğer varsa)
