@@ -20,10 +20,30 @@ interface BackupStatus {
 }
 
 export default function SimpleBackup() {
-  const [backupStatus, setBackupStatus] = useState<BackupStatus | null>(null)
+  const [backupStatus, setBackupStatus] = useState<BackupStatus | null>({
+    config: {
+      enabled: false,
+      schedule: '0 2 * * *',
+      retention: 7,
+      includeDatabase: true,
+      includeUploads: true,
+      includeLogs: true
+    },
+    lastBackup: undefined,
+    nextBackup: undefined,
+    backupSize: 0,
+    status: 'inactive'
+  })
   const [loading, setLoading] = useState(false)
   const [autoBackupModalOpen, setAutoBackupModalOpen] = useState(false)
-  const [tempConfig, setTempConfig] = useState<BackupConfig | null>(null)
+  const [tempConfig, setTempConfig] = useState<BackupConfig | null>({
+    enabled: false,
+    schedule: '0 2 * * *',
+    retention: 7,
+    includeDatabase: true,
+    includeUploads: true,
+    includeLogs: true
+  })
 
   useEffect(() => {
     fetchBackupStatus()
@@ -39,6 +59,23 @@ export default function SimpleBackup() {
       }
     } catch (error) {
       console.error('Yedekleme durumu alınamadı:', error)
+      // API hatası durumunda default değerler set et
+      const defaultConfig = {
+        enabled: false,
+        schedule: '0 2 * * *',
+        retention: 7,
+        includeDatabase: true,
+        includeUploads: true,
+        includeLogs: true
+      }
+      setBackupStatus({
+        config: defaultConfig,
+        lastBackup: undefined,
+        nextBackup: undefined,
+        backupSize: 0,
+        status: 'inactive'
+      })
+      setTempConfig(defaultConfig)
     }
   }
 
