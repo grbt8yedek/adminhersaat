@@ -517,7 +517,7 @@ export default function SystemStatus() {
         const successCount = data.files.filter((f: any) => f.status.includes('✅')).length
         const errorCount = data.files.filter((f: any) => f.status.includes('❌')).length
         
-        alert(`✅ GitLab yedekleme başarıyla tamamlandı!\n\n📁 Repository: ${data.repository}\n📊 Yedek Adı: ${data.backupName}\n⏰ Tarih: ${new Date(data.timestamp).toLocaleString('tr-TR')}\n\n📂 Yedekleme Yapısı:\n• admin-panel/: Admin paneli kaynak kodları\n• ana-site/: Ana site kaynak kodları\n• database/: Veritabanı yedekleme\n• uploads/: Yüklenen dosyalar\n\n📈 İstatistikler:\n• Toplam dosya: ${data.files.length}\n• Başarılı: ${successCount}\n• Hatalı: ${errorCount}\n\n🔗 GitLab'da görüntülemek için: ${data.repository}`)
+        alert(`✅ Admin Panel GitLab yedekleme başarıyla tamamlandı!\n\n📁 Repository: ${data.repository}\n📊 Yedek Adı: ${data.backupName}\n⏰ Tarih: ${new Date(data.timestamp).toLocaleString('tr-TR')}\n\n📂 Yedekleme Yapısı:\n• admin-panel/: Admin paneli kaynak kodları\n• ana-site/: Ana site kaynak kodları\n• database/: Veritabanı yedekleme\n• uploads/: Yüklenen dosyalar\n\n📈 İstatistikler:\n• Toplam dosya: ${data.files.length}\n• Başarılı: ${successCount}\n• Hatalı: ${errorCount}\n\n🔗 GitLab'da görüntülemek için: ${data.repository}`)
         await fetchBackupStatus() // Durumu yenile
       } else {
         alert(`❌ GitLab yedekleme başarısız!\n\n${data.error}`)
@@ -525,6 +525,33 @@ export default function SystemStatus() {
     } catch (error) {
       alert('❌ GitLab yedekleme sırasında hata oluştu!')
       console.error('GitLab Backup Error:', error)
+    } finally {
+      setBackupLoading(false)
+    }
+  }
+
+  const handleMainSiteGitLabBackup = async () => {
+    setBackupLoading(true)
+    try {
+      const response = await fetch('/api/system/backup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'gitlab-main' })
+      })
+      const data = await response.json()
+
+      if (data.success) {
+        const successCount = data.files.filter((f: any) => f.status.includes('✅')).length
+        const errorCount = data.files.filter((f: any) => f.status.includes('❌')).length
+        
+        alert(`✅ Ana Site GitLab yedekleme başarıyla tamamlandı!\n\n📁 Repository: ${data.repository}\n📊 Yedek Adı: ${data.backupName}\n⏰ Tarih: ${new Date(data.timestamp).toLocaleString('tr-TR')}\n\n📂 Yedekleme Yapısı:\n• ana-site/: Ana site kaynak kodları\n• database/: Ana site veritabanı yedekleme\n\n📈 İstatistikler:\n• Toplam dosya: ${data.files.length}\n• Başarılı: ${successCount}\n• Hatalı: ${errorCount}\n\n🔗 GitLab'da görüntülemek için: ${data.repository}`)
+        await fetchBackupStatus() // Durumu yenile
+      } else {
+        alert(`❌ Ana Site GitLab yedekleme başarısız!\n\n${data.error}`)
+      }
+    } catch (error) {
+      alert('❌ Ana Site GitLab yedekleme sırasında hata oluştu!')
+      console.error('Main Site GitLab Backup Error:', error)
     } finally {
       setBackupLoading(false)
     }
@@ -1001,39 +1028,56 @@ export default function SystemStatus() {
 
           {/* Yedekleme Yapısı Bilgisi */}
           <div className="bg-blue-50 rounded-lg p-4 mb-4">
-            <h4 className="text-sm font-medium text-blue-800 mb-3">📂 GitLab Yedekleme Yapısı</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <div className="space-y-2">
+            <h4 className="text-sm font-medium text-blue-800 mb-3">📂 GitLab Yedekleme Sistemi</h4>
+            
+            {/* Admin Panel Yedekleme */}
+            <div className="mb-4">
+              <h5 className="text-sm font-medium text-purple-800 mb-2">🟣 Admin Panel Yedekleme</h5>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                  <span className="text-blue-700 font-medium">admin-panel/</span>
+                  <span className="text-blue-700">admin-panel/</span>
                 </div>
-                <p className="text-blue-600 text-xs ml-4">Admin paneli kaynak kodları ve konfigürasyon</p>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  <span className="text-green-700 font-medium">ana-site/</span>
-                </div>
-                <p className="text-green-600 text-xs ml-4">Ana site kaynak kodları ve konfigürasyon</p>
-              </div>
-              <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                  <span className="text-purple-700 font-medium">database/</span>
+                  <span className="text-purple-700">database/</span>
                 </div>
-                <p className="text-purple-600 text-xs ml-4">Veritabanı yedekleme dosyaları</p>
-              </div>
-              <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                  <span className="text-orange-700 font-medium">uploads/</span>
+                  <span className="text-orange-700">uploads/</span>
                 </div>
-                <p className="text-orange-600 text-xs ml-4">Yüklenen dosyalar ve medya</p>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                  <span className="text-gray-700">Repository: grbt8ap-backup</span>
+                </div>
               </div>
             </div>
+
+            {/* Ana Site Yedekleme */}
+            <div className="mb-4">
+              <h5 className="text-sm font-medium text-green-800 mb-2">🟢 Ana Site Yedekleme</h5>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <span className="text-green-700">ana-site/</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                  <span className="text-purple-700">database/</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                  <span className="text-gray-700">Repository: grbt8-backup</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <span className="text-blue-700">GitHub'dan çekilir</span>
+                </div>
+              </div>
+            </div>
+
             <div className="mt-3 text-xs text-blue-600">
-              <p>💡 <strong>Not:</strong> GitLab yedekleme sistemi artık organize bir klasör yapısında çalışmaktadır. Her yedekleme tarih bazlı klasörlerde saklanır.</p>
+              <p>💡 <strong>Not:</strong> İki ayrı yedekleme sistemi: Admin Panel ve Ana Site için ayrı GitLab repository'leri kullanılır.</p>
             </div>
           </div>
 
@@ -1053,7 +1097,15 @@ export default function SystemStatus() {
               className="flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50"
             >
               <Download className="h-4 w-4" />
-              <span>{backupLoading ? 'GitLab\'a Yedekleniyor...' : 'GitLab\'a Yedekle'}</span>
+              <span>{backupLoading ? 'Admin Panel Yedekleniyor...' : 'Admin Panel GitLab\'a Yedekle'}</span>
+            </button>
+            <button 
+              onClick={handleMainSiteGitLabBackup}
+              disabled={backupLoading}
+              className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+            >
+              <Download className="h-4 w-4" />
+              <span>{backupLoading ? 'Ana Site Yedekleniyor...' : 'Ana Site GitLab\'a Yedekle'}</span>
             </button>
             <button 
               onClick={handleToggleBackup}
