@@ -29,7 +29,7 @@ interface BackupConfig {
 
 export async function GET() {
   try {
-    // Yedekleme konfigürasyonunu oku
+    // Yedekleme konfigürasyonunu oku (Vercel uyumlu)
     const configPath = path.join(process.cwd(), 'shared', 'backup-config.json')
     let config: BackupConfig = {
       enabled: false,
@@ -40,9 +40,43 @@ export async function GET() {
       includeLogs: true
     }
 
-    if (fs.existsSync(configPath)) {
-      const configData = fs.readFileSync(configPath, 'utf8')
-      config = { ...config, ...JSON.parse(configData) }
+    // Vercel'de dosya okuma da sorunlu olabilir, try-catch ile handle et
+    try {
+      if (fs.existsSync(configPath)) {
+        const configData = fs.readFileSync(configPath, 'utf8')
+        config = { ...config, ...JSON.parse(configData) }
+        console.log('✅ Config dosyası okundu:', config)
+      } else {
+        console.log('⚠️ Config dosyası bulunamadı, default config kullanılıyor')
+      }
+    } catch (fileError) {
+      console.log('⚠️ Config dosyası okunamadı (Vercel sınırlaması), default config kullanılıyor')
+      
+      // Vercel'de sistem loglarından son config'i almaya çalış
+      try {
+        const { PrismaClient } = await import('@prisma/client')
+        const prisma = new PrismaClient()
+        
+        const lastConfigLog = await prisma.systemLog.findFirst({
+          where: {
+            source: 'backup',
+            message: 'Yedekleme konfigürasyonu güncellendi'
+          },
+          orderBy: {
+            timestamp: 'desc'
+          }
+        })
+        
+        if (lastConfigLog && lastConfigLog.metadata) {
+          const logConfig = JSON.parse(lastConfigLog.metadata)
+          config = { ...config, ...logConfig }
+          console.log('✅ Config sistem loglarından alındı:', config)
+        }
+        
+        await prisma.$disconnect()
+      } catch (dbError) {
+        console.log('⚠️ Database\'den config alınamadı, default kullanılıyor')
+      }
     }
 
     // Son yedekleme bilgilerini al
