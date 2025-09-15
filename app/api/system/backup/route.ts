@@ -81,21 +81,55 @@ export async function GET() {
       }
     }
 
-    // Son yedekleme bilgilerini al
-    const backupDir = path.join(process.cwd(), '..', 'admin64_backup')
+    // Son yedekleme bilgilerini al (GitLab loglarından)
     let lastBackup = null
     let backupSize = 0
 
-    if (fs.existsSync(backupDir)) {
-      const stats = fs.statSync(backupDir)
-      lastBackup = stats.mtime.toISOString()
+    try {
+      const { PrismaClient } = await import('@prisma/client')
+      const prisma = new PrismaClient()
       
-      // Klasör boyutunu hesapla
-      try {
-        const { stdout } = await execAsync(`du -sh "${backupDir}"`)
-        backupSize = parseInt(stdout.split('\t')[0].replace(/[^\d]/g, '')) || 0
-      } catch (error) {
-        console.log('Backup boyutu hesaplanamadı')
+      // Son GitLab yedekleme logunu bul
+      const lastBackupLog = await prisma.systemLog.findFirst({
+        where: {
+          source: 'backup-gitlab',
+          message: 'GitLab yedekleme oluşturuldu'
+        },
+        orderBy: {
+          timestamp: 'desc'
+        }
+      })
+      
+      if (lastBackupLog) {
+        lastBackup = lastBackupLog.timestamp.toISOString()
+        
+        // Log metadata'sından dosya sayısını al
+        if (lastBackupLog.metadata) {
+          try {
+            const metadata = JSON.parse(lastBackupLog.metadata)
+            if (metadata.files && Array.isArray(metadata.files)) {
+              backupSize = metadata.files.length // Dosya sayısı olarak
+            }
+          } catch (parseError) {
+            console.log('Backup metadata parse edilemedi')
+          }
+        }
+        
+        console.log('✅ Son yedekleme bilgisi sistem loglarından alındı:', lastBackup)
+      } else {
+        console.log('⚠️ Henüz GitLab yedekleme kaydı bulunamadı')
+      }
+      
+      await prisma.$disconnect()
+    } catch (dbError) {
+      console.log('⚠️ Son yedekleme bilgisi alınamadı:', dbError)
+      
+      // Fallback: Eski klasör sistemini kontrol et
+      const backupDir = path.join(process.cwd(), '..', 'admin64_backup')
+      if (fs.existsSync(backupDir)) {
+        const stats = fs.statSync(backupDir)
+        lastBackup = stats.mtime.toISOString()
+        console.log('✅ Son yedekleme bilgisi klasörden alındı (fallback)')
       }
     }
 
