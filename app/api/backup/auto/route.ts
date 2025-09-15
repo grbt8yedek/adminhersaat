@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 
-// 6 saatte bir çalışacak cron job
-export const config = {
-  schedule: '0 */6 * * *' // Her 6 saatte bir: 00:00, 06:00, 12:00, 18:00
-}
+// 6 saatte bir çalışacak cron job - Vercel Cron Jobs
+// Vercel dashboard'dan manuel olarak ayarlanacak
 
 const prisma = new PrismaClient()
 
