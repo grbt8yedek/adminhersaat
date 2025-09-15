@@ -886,9 +886,9 @@ async function createMainSiteGitLabBackup() {
     // Ana site yedekleme oluştur
     const uploadResults = []
 
-    // 1. Ana Site kaynak kodları (Vercel'den çek)
+    // 1. Ana Site kaynak kodları (GitHub'dan çek)
     console.log('Ana site kaynak kodları yedekleniyor...')
-    const mainSiteBackup = await createMainSiteFromVercel()
+    const mainSiteBackup = await createMainSiteFromGitHub()
     for (const [filePath, content] of Object.entries(mainSiteBackup.files)) {
       const result = await uploadFileToGitLab(
         `ana-site/${filePath}`,
@@ -948,7 +948,8 @@ Bu yedekten geri yükleme yapmak için:
 
 ## 📝 Notlar
 - Bu yedek otomatik olarak oluşturulmuştur
-- Ana site Vercel deployment'ından çekilmiştir
+- Ana site GitHub repository'sinden çekilmiştir
+- GitHub Repository: https://github.com/Depogrbt8/anasiteotoyedek
 - Vercel Projesi: https://vercel.com/grbt8/grbt8
 - Geri yükleme işlemi için gerekli bağımlılıkları yüklemeyi unutmayın
 
@@ -987,107 +988,139 @@ Bu yedekten geri yükleme yapmak için:
   }
 }
 
-// Vercel'den ana site kodlarını çek
-async function createMainSiteFromVercel() {
+// GitHub'dan ana site kodlarını çek
+async function createMainSiteFromGitHub() {
   try {
     const files: { [key: string]: string } = {}
     
-    // Vercel API ile ana site deployment'ını çek
-    const VERCEL_TOKEN = process.env.VERCEL_TOKEN || 'vercel_token_here'
-    const TEAM_ID = 'grbt8'
-    const PROJECT_ID = 'grbt8'
+    // GitHub API bilgileri
+    const GITHUB_TOKEN = process.env.GITHUB_TOKEN || 'GITHUB_TOKEN_NOT_SET'
+    const REPO_OWNER = 'Depogrbt8'
+    const REPO_NAME = 'anasiteotoyedek'
     
     try {
-      // Vercel deployment'larını listele
-      const deploymentsResponse = await fetch(`https://api.vercel.com/v6/deployments?teamId=${TEAM_ID}&projectId=${PROJECT_ID}&limit=1`, {
+      // Repository içeriğini çek
+      const contentsResponse = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents`, {
         headers: {
-          'Authorization': `Bearer ${VERCEL_TOKEN}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'GRBT8-Backup-System'
         }
       })
       
-      if (deploymentsResponse.ok) {
-        const deployments = await deploymentsResponse.json()
+      if (contentsResponse.ok) {
+        const contents = await contentsResponse.json()
         
-        if (deployments.deployments && deployments.deployments.length > 0) {
-          const latestDeployment = deployments.deployments[0]
-          
-          // Deployment detaylarını al
-          const deploymentResponse = await fetch(`https://api.vercel.com/v13/deployments/${latestDeployment.uid}`, {
-            headers: {
-              'Authorization': `Bearer ${VERCEL_TOKEN}`,
-              'Content-Type': 'application/json'
-            }
-          })
-          
-          if (deploymentResponse.ok) {
-            const deployment = await deploymentResponse.json()
-            
-            // Ana site için temel dosyalar oluştur
-            files['package.json'] = JSON.stringify({
-              name: 'grbt8-main-site',
-              version: '1.0.0',
-              description: 'GRBT8 Ana Site - Vercel Deployment',
-              scripts: {
-                dev: 'next dev',
-                build: 'next build',
-                start: 'next start'
-              },
-              dependencies: {
-                'next': '^13.5.6',
-                'react': '^18.2.0',
-                'react-dom': '^18.2.0'
+        // Her dosya ve klasörü işle
+        for (const item of contents) {
+          if (item.type === 'file') {
+            // Dosyayı çek
+            const fileResponse = await fetch(item.download_url, {
+              headers: {
+                'Authorization': `Bearer ${GITHUB_TOKEN}`,
+                'User-Agent': 'GRBT8-Backup-System'
               }
-            }, null, 2)
+            })
             
-            files['vercel.json'] = JSON.stringify({
-              version: 2,
-              builds: [
-                {
-                  src: 'package.json',
-                  use: '@vercel/next'
-                }
-              ]
-            }, null, 2)
-            
-            files['README.md'] = `# GRBT8 Ana Site - Vercel Backup
+            if (fileResponse.ok) {
+              const content = await fileResponse.text()
+              files[item.name] = content
+            }
+          } else if (item.type === 'dir') {
+            // Alt klasörleri de çek
+            const subFiles = await fetchDirectoryContents(item.url, GITHUB_TOKEN)
+            Object.assign(files, subFiles)
+          }
+        }
+        
+        // GitHub repository bilgilerini ekle
+        const repoResponse = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`, {
+          headers: {
+            'Authorization': `Bearer ${GITHUB_TOKEN}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'User-Agent': 'GRBT8-Backup-System'
+          }
+        })
+        
+        if (repoResponse.ok) {
+          const repo = await repoResponse.json()
+          
+          files['github-info.json'] = JSON.stringify({
+            repository: repo.full_name,
+            description: repo.description,
+            url: repo.html_url,
+            cloneUrl: repo.clone_url,
+            defaultBranch: repo.default_branch,
+            lastUpdated: repo.updated_at,
+            stars: repo.stargazers_count,
+            forks: repo.forks_count,
+            backupDate: new Date().toISOString()
+          }, null, 2)
+        }
+        
+        // Backup README oluştur
+        files['BACKUP_README.md'] = `# GRBT8 Ana Site - GitHub Backup
 Bu ana site yedeklemesidir.
 
-## Deployment Bilgileri
-- **Deployment ID**: ${latestDeployment.uid}
-- **URL**: ${latestDeployment.url}
-- **Durum**: ${latestDeployment.state}
-- **Tarih**: ${new Date(latestDeployment.createdAt).toLocaleString('tr-TR')}
-- **Vercel Projesi**: ${PROJECT_ID}
+## Repository Bilgileri
+- **Repository**: ${REPO_OWNER}/${REPO_NAME}
+- **GitHub URL**: https://github.com/${REPO_OWNER}/${REPO_NAME}
+- **Vercel Projesi**: https://vercel.com/grbt8/grbt8
 
 ## Yedekleme Detayları
 - **Yedekleme Tarihi**: ${new Date().toLocaleString('tr-TR')}
-- **Kaynak**: Vercel API
-- **Proje**: https://vercel.com/grbt8/grbt8
+- **Kaynak**: GitHub API
+- **Dosya Sayısı**: ${Object.keys(files).length}
+- **Token**: GitHub Personal Access Token kullanıldı
 
-Bu yedek Vercel deployment'ından oluşturulmuştur.
+Bu yedek GitHub repository'sinden tam olarak çekilmiştir.
+Tüm kaynak kodlar ve dosyalar dahildir.
+
+## Restore İşlemi
+Bu yedekten geri yükleme yapmak için:
+1. Dosyaları GitHub'a push edin
+2. Vercel'e deploy edin
+3. Environment variables'ları ayarlayın
+
+---
+*GRBT8 Otomatik Yedekleme Sistemi*
 `
-            
-            files['deployment-info.json'] = JSON.stringify({
-              deploymentId: latestDeployment.uid,
-              url: latestDeployment.url,
-              state: latestDeployment.state,
-              createdAt: latestDeployment.createdAt,
-              projectId: PROJECT_ID,
-              teamId: TEAM_ID,
-              backupDate: new Date().toISOString()
-            }, null, 2)
+        
+      } else {
+        console.log('GitHub API hatası, temel dosyalar oluşturuluyor')
+        
+        // GitHub API çalışmazsa temel dosyalar oluştur
+        files['package.json'] = JSON.stringify({
+          name: 'grbt8-main-site',
+          version: '1.0.0',
+          description: 'GRBT8 Ana Site - GitHub Backup',
+          scripts: {
+            dev: 'next dev',
+            build: 'next build',
+            start: 'next start'
+          },
+          dependencies: {
+            'next': '^13.5.6',
+            'react': '^18.2.0',
+            'react-dom': '^18.2.0'
           }
-        }
+        }, null, 2)
+        
+        files['README.md'] = `# GRBT8 Ana Site
+Bu ana site yedeklemesidir.
+Tarih: ${new Date().toLocaleString('tr-TR')}
+GitHub Repository: https://github.com/${REPO_OWNER}/${REPO_NAME}
+Vercel Projesi: https://vercel.com/grbt8/grbt8
+`
       }
     } catch (error) {
-      console.log('Vercel API hatası, temel dosyalar oluşturuluyor')
+      console.log('GitHub API hatası:', error)
       
-      // Vercel API çalışmazsa temel dosyalar oluştur
+      // Hata durumunda temel dosyalar oluştur
       files['package.json'] = JSON.stringify({
         name: 'grbt8-main-site',
         version: '1.0.0',
-        description: 'GRBT8 Ana Site',
+        description: 'GRBT8 Ana Site - GitHub Backup Error',
         scripts: {
           dev: 'next dev',
           build: 'next build',
@@ -1100,11 +1133,12 @@ Bu yedek Vercel deployment'ından oluşturulmuştur.
         }
       }, null, 2)
       
-      files['README.md'] = `# GRBT8 Ana Site
-Bu ana site yedeklemesidir.
-Tarih: ${new Date().toLocaleString('tr-TR')}
-Vercel Projesi: https://vercel.com/grbt8/grbt8
-`
+      files['error-info.json'] = JSON.stringify({
+        error: 'GitHub API hatası',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        repository: `${REPO_OWNER}/${REPO_NAME}`,
+        backupDate: new Date().toISOString()
+      }, null, 2)
     }
     
     return {
@@ -1113,14 +1147,56 @@ Vercel Projesi: https://vercel.com/grbt8/grbt8
       files: files
     }
   } catch (error) {
-    console.error('Ana site Vercel backup hatası:', error)
+    console.error('Ana site GitHub backup hatası:', error)
     return {
       timestamp: new Date().toISOString(),
       type: 'main_site',
-      error: 'Ana site Vercel backup oluşturulamadı',
+      error: 'Ana site GitHub backup oluşturulamadı',
       files: {}
     }
   }
+}
+
+// GitHub alt klasörlerini çek
+async function fetchDirectoryContents(url: string, token: string): Promise<{ [key: string]: string }> {
+  const files: { [key: string]: string } = {}
+  
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'GRBT8-Backup-System'
+      }
+    })
+    
+    if (response.ok) {
+      const contents = await response.json()
+      
+      for (const item of contents) {
+        if (item.type === 'file') {
+          const fileResponse = await fetch(item.download_url, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'User-Agent': 'GRBT8-Backup-System'
+            }
+          })
+          
+          if (fileResponse.ok) {
+            const content = await fileResponse.text()
+            files[item.path] = content
+          }
+        } else if (item.type === 'dir') {
+          const subFiles = await fetchDirectoryContents(item.url, token)
+          Object.assign(files, subFiles)
+        }
+      }
+    }
+  } catch (error) {
+    console.log('Alt klasör çekme hatası:', error)
+  }
+  
+  return files
 }
 
 // Ana site database dump (aynı database kullanıyor)
