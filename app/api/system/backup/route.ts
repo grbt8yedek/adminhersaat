@@ -993,8 +993,8 @@ async function createMainSiteFromGitHub() {
   try {
     const files: { [key: string]: string } = {}
     
-    // GitHub API bilgileri
-    const GITHUB_TOKEN = process.env.GITHUB_TOKEN || 'GITHUB_TOKEN_NOT_SET'
+    // GitHub API bilgileri (TOKEN kesinlikle kodda tutulmaz)
+    const GITHUB_TOKEN = process.env.GITHUB_TOKEN || ''
     const REPO_OWNER = 'Depogrbt8'
     const REPO_NAME = 'anasiteotoyedek'
     
@@ -1010,6 +1010,7 @@ async function createMainSiteFromGitHub() {
       
       if (contentsResponse.ok) {
         const contents = await contentsResponse.json()
+        console.log(`GitHub'dan ${contents.length} dosya/klasör çekildi`)
         
         // Her dosya ve klasörü işle
         for (const item of contents) {
@@ -1025,9 +1026,13 @@ async function createMainSiteFromGitHub() {
             if (fileResponse.ok) {
               const content = await fileResponse.text()
               files[item.name] = content
+              console.log(`✅ Dosya yedeklendi: ${item.name}`)
+            } else {
+              console.log(`❌ Dosya yedeklenemedi: ${item.name} - ${fileResponse.status}`)
             }
           } else if (item.type === 'dir') {
             // Alt klasörleri de çek
+            console.log(`📁 Klasör işleniyor: ${item.name}`)
             const subFiles = await fetchDirectoryContents(item.url, GITHUB_TOKEN)
             Object.assign(files, subFiles)
           }
@@ -1087,13 +1092,15 @@ Bu yedekten geri yükleme yapmak için:
 `
         
       } else {
-        console.log('GitHub API hatası, temel dosyalar oluşturuluyor')
+        console.log(`❌ GitHub API hatası: ${contentsResponse.status} - ${contentsResponse.statusText}`)
+        const errorText = await contentsResponse.text()
+        console.log(`Hata detayı: ${errorText}`)
         
         // GitHub API çalışmazsa temel dosyalar oluştur
         files['package.json'] = JSON.stringify({
           name: 'grbt8-main-site',
           version: '1.0.0',
-          description: 'GRBT8 Ana Site - GitHub Backup',
+          description: 'GRBT8 Ana Site - GitHub Backup Error',
           scripts: {
             dev: 'next dev',
             build: 'next build',
@@ -1106,12 +1113,15 @@ Bu yedekten geri yükleme yapmak için:
           }
         }, null, 2)
         
-        files['README.md'] = `# GRBT8 Ana Site
-Bu ana site yedeklemesidir.
-Tarih: ${new Date().toLocaleString('tr-TR')}
-GitHub Repository: https://github.com/${REPO_OWNER}/${REPO_NAME}
-Vercel Projesi: https://vercel.com/grbt8/grbt8
-`
+        files['error-info.json'] = JSON.stringify({
+          error: 'GitHub API hatası',
+          status: contentsResponse.status,
+          statusText: contentsResponse.statusText,
+          message: errorText,
+          repository: `${REPO_OWNER}/${REPO_NAME}`,
+          backupDate: new Date().toISOString(),
+          tokenStatus: GITHUB_TOKEN === 'ghp_1234567890abcdef1234567890abcdef12345678' ? 'Geçici token kullanılıyor' : 'Environment token kullanılıyor'
+        }, null, 2)
       }
     } catch (error) {
       console.log('GitHub API hatası:', error)
