@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       const result = await createBackup()
       
       if (result.success) {
-        await createLog({
+        await safeCreateLog({
           level: 'INFO',
           message: 'Manuel yedekleme oluşturuldu',
           source: 'backup',
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
       const result = await createGitLabBackup()
 
       if (result.success) {
-        await createLog({
+        await safeCreateLog({
           level: 'INFO',
           message: 'GitLab yedekleme oluşturuldu',
           source: 'backup-gitlab',
