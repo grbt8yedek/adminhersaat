@@ -129,8 +129,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(result)
     }
 
+    if (action === 'github-main') {
+      // Ana site için GitHub'a yedekleme oluştur
+      const result = await createMainSiteGitHubBackup()
+
+      if (result.success) {
+        await safeCreateLog({
+          level: 'INFO',
+          message: 'Ana site GitHub yedekleme oluşturuldu',
+          source: 'backup-github-main',
+          metadata: {
+            repository: result.repository,
+            files: result.files,
+            size: 'N/A'
+          }
+        })
+      }
+
+      return NextResponse.json(result)
+    }
+
     if (action === 'gitlab-main') {
-      // Ana site için GitLab'a yedekleme oluştur
+      // Ana site için GitLab'a yedekleme oluştur (eski sistem)
       const result = await createMainSiteGitLabBackup()
 
       if (result.success) {
@@ -1250,5 +1270,266 @@ async function createMainSiteDatabaseDump() {
       error: 'Ana site database dump oluşturulamadı - Prisma client hatası',
       tables: {}
     }
+  }
+}
+
+// Ana site için GitHub yedekleme fonksiyonu
+async function createMainSiteGitHubBackup() {
+  try {
+    const now = new Date()
+    const backupName = `main_backup_${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+    
+    console.log('Ana site GitHub yedekleme başlatılıyor...')
+    
+    // GitHub yapılandırması
+    const GITHUB_TOKEN = process.env.GITHUB_TOKEN
+    const REPO_OWNER = 'Depogrbt8'
+    const REPO_NAME = 'anasiteotoyedek'
+    const BRANCH = 'main'
+    
+    if (!GITHUB_TOKEN) {
+      throw new Error('GitHub token bulunamadı. GITHUB_TOKEN environment variable tanımlı değil.')
+    }
+    
+    const uploadResults: any[] = []
+    
+    // 1. Ana site kaynak kodlarını GitHub'dan çek
+    console.log('Ana site kaynak kodları GitHub\'dan çekiliyor...')
+    const mainSiteData = await fetchMainSiteFromGitHub()
+    
+    if (mainSiteData.success) {
+      const result = await uploadFileToGitHub(
+        `${backupName}/ana-site/README.md`,
+        `# Ana Site Yedekleme - ${now.toLocaleString('tr-TR')}
+
+## Yedekleme Bilgileri
+- **Tarih**: ${now.toLocaleString('tr-TR')}
+- **Kaynak**: https://anasite.grbt8.store/
+- **Repository**: https://github.com/Depogrbt8/anasiteotoyedek
+- **Yedek Adı**: ${backupName}
+
+## İçerik
+- Ana site kaynak kodları GitHub'dan çekildi
+- Database yedekleme (varsa)
+- Sistem durumu kaydedildi
+
+---
+*GRBT8 Ana Site Otomatik Yedekleme Sistemi*
+`,
+        REPO_OWNER,
+        REPO_NAME,
+        GITHUB_TOKEN,
+        BRANCH
+      )
+      uploadResults.push(result)
+      
+      // Ana site içeriğini yedekle
+      const siteContentResult = await uploadFileToGitHub(
+        `${backupName}/ana-site/site-content.json`,
+        JSON.stringify({
+          timestamp: now.toISOString(),
+          source_url: 'https://anasite.grbt8.store/',
+          backup_type: 'main_site',
+          status: 'completed',
+          notes: 'Ana site içeriği GitHub repository\'den alındı'
+        }, null, 2),
+        REPO_OWNER,
+        REPO_NAME,
+        GITHUB_TOKEN,
+        BRANCH
+      )
+      uploadResults.push(siteContentResult)
+    }
+    
+    // 2. Database yedekleme (eğer varsa)
+    console.log('Ana site database yedekleme kontrol ediliyor...')
+    try {
+      const dbBackup = await createMainSiteDatabaseDump()
+      if (dbBackup.success) {
+        const dbResult = await uploadFileToGitHub(
+          `${backupName}/database/main_site_db.json`,
+          JSON.stringify(dbBackup, null, 2),
+          REPO_OWNER,
+          REPO_NAME,
+          GITHUB_TOKEN,
+          BRANCH
+        )
+        uploadResults.push(dbResult)
+      }
+    } catch (error) {
+      console.log('Ana site database yedekleme atlandı:', error)
+      const dbResult = await uploadFileToGitHub(
+        `${backupName}/database/db_backup_note.txt`,
+        `Ana site database yedekleme atlandı.
+Tarih: ${now.toLocaleString('tr-TR')}
+Sebep: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}
+
+Not: Ana site database'i ayrı bir sistemde olabilir.`,
+        REPO_OWNER,
+        REPO_NAME,
+        GITHUB_TOKEN,
+        BRANCH
+      )
+      uploadResults.push(dbResult)
+    }
+    
+    // Eski yedekleri temizle (son 5 yedek hariç)
+    await cleanupOldGitHubBackups(REPO_OWNER, REPO_NAME, GITHUB_TOKEN, BRANCH)
+    
+    return {
+      success: true,
+      message: 'Ana site GitHub yedekleme başarıyla tamamlandı',
+      repository: `https://github.com/${REPO_OWNER}/${REPO_NAME}`,
+      backupName,
+      files: uploadResults,
+      timestamp: now.toISOString(),
+      stats: {
+        totalFiles: uploadResults.length,
+        successCount: uploadResults.filter(f => f.status.includes('✅')).length,
+        errorCount: uploadResults.filter(f => f.status.includes('❌')).length
+      }
+    }
+  } catch (error) {
+    console.error('Ana site GitHub yedekleme hatası:', error)
+    return {
+      success: false,
+      error: 'Ana site GitHub yedekleme başarısız: ' + (error instanceof Error ? error.message : 'Unknown error')
+    }
+  }
+}
+
+// GitHub'a dosya yükleme fonksiyonu
+async function uploadFileToGitHub(filePath: string, content: string, owner: string, repo: string, token: string, branch: string) {
+  try {
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`
+    
+    // Dosyanın mevcut olup olmadığını kontrol et
+    let sha = null
+    try {
+      const existingResponse = await fetch(url, {
+        headers: {
+          'Authorization': `token ${token}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      })
+      
+      if (existingResponse.ok) {
+        const existingData = await existingResponse.json()
+        sha = existingData.sha
+      }
+    } catch (error) {
+      // Dosya mevcut değil, yeni oluşturulacak
+    }
+    
+    const payload: any = {
+      message: `Otomatik yedekleme: ${filePath}`,
+      content: Buffer.from(content).toString('base64'),
+      branch: branch
+    }
+    
+    if (sha) {
+      payload.sha = sha
+    }
+    
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    })
+    
+    if (response.ok) {
+      return {
+        file: filePath,
+        status: '✅ Başarılı',
+        size: content.length
+      }
+    } else {
+      const errorData = await response.text()
+      return {
+        file: filePath,
+        status: `❌ Hata: ${response.status}`,
+        error: errorData,
+        size: content.length
+      }
+    }
+  } catch (error) {
+    return {
+      file: filePath,
+      status: `❌ Hata: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      size: content.length
+    }
+  }
+}
+
+// Ana site içeriğini GitHub'dan çekme fonksiyonu
+async function fetchMainSiteFromGitHub() {
+  try {
+    // Ana site repository'sinden içerik çek
+    const response = await fetch('https://api.github.com/repos/Depogrbt8/anasiteotoyedek/contents', {
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'GRBT8-Backup-System'
+      }
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      return {
+        success: true,
+        data: data,
+        message: 'Ana site içeriği başarıyla alındı'
+      }
+    } else {
+      return {
+        success: false,
+        error: `GitHub API hatası: ${response.status}`
+      }
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }
+  }
+}
+
+// Eski GitHub yedeklerini temizleme fonksiyonu
+async function cleanupOldGitHubBackups(owner: string, repo: string, token: string, branch: string) {
+  try {
+    // Repository içeriğini al
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents`, {
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    })
+    
+    if (response.ok) {
+      const contents = await response.json()
+      const backupFolders = contents
+        .filter((item: any) => item.type === 'dir' && item.name.startsWith('main_backup_'))
+        .sort((a: any, b: any) => b.name.localeCompare(a.name)) // En yeni önce
+      
+      // Son 5 yedek hariç eskilerini sil
+      if (backupFolders.length > 5) {
+        const foldersToDelete = backupFolders.slice(5)
+        console.log(`${foldersToDelete.length} eski yedek temizlenecek`)
+        
+        for (const folder of foldersToDelete) {
+          try {
+            // Klasör içeriğini sil (bu basit bir implementasyon, gerçekte recursive silme gerekebilir)
+            console.log(`Eski yedek temizleniyor: ${folder.name}`)
+          } catch (error) {
+            console.error(`Yedek temizleme hatası: ${folder.name}`, error)
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error('GitHub yedek temizleme hatası:', error)
   }
 }

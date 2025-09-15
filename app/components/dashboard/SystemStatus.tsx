@@ -517,26 +517,26 @@ export default function SystemStatus() {
         const successCount = data.files.filter((f: any) => f.status.includes('✅')).length
         const errorCount = data.files.filter((f: any) => f.status.includes('❌')).length
         
-        alert(`✅ Admin Panel GitLab yedekleme başarıyla tamamlandı!\n\n📁 Repository: ${data.repository}\n📊 Yedek Adı: ${data.backupName}\n⏰ Tarih: ${new Date(data.timestamp).toLocaleString('tr-TR')}\n\n📂 Yedekleme Yapısı:\n• admin-panel/: Admin paneli kaynak kodları\n• ana-site/: Ana site kaynak kodları\n• database/: Veritabanı yedekleme\n• uploads/: Yüklenen dosyalar\n\n📈 İstatistikler:\n• Toplam dosya: ${data.files.length}\n• Başarılı: ${successCount}\n• Hatalı: ${errorCount}\n\n🔗 GitLab'da görüntülemek için: ${data.repository}`)
+        alert(`✅ Admin Panel GitHub yedekleme başarıyla tamamlandı!\n\n📁 Repository: ${data.repository}\n📊 Yedek Adı: ${data.backupName}\n⏰ Tarih: ${new Date(data.timestamp).toLocaleString('tr-TR')}\n\n📂 Yedekleme Yapısı:\n• admin-panel/: Admin paneli kaynak kodları\n• ana-site/: Ana site kaynak kodları\n• database/: Veritabanı yedekleme\n• uploads/: Yüklenen dosyalar\n\n📈 İstatistikler:\n• Toplam dosya: ${data.files.length}\n• Başarılı: ${successCount}\n• Hatalı: ${errorCount}\n\n🔗 GitHub'da görüntülemek için: ${data.repository}`)
         await fetchBackupStatus() // Durumu yenile
       } else {
-        alert(`❌ GitLab yedekleme başarısız!\n\n${data.error}`)
+        alert(`❌ GitHub yedekleme başarısız!\n\n${data.error}`)
       }
     } catch (error) {
-      alert('❌ GitLab yedekleme sırasında hata oluştu!')
-      console.error('GitLab Backup Error:', error)
+      alert('❌ GitHub yedekleme sırasında hata oluştu!')
+      console.error('GitHub Backup Error:', error)
     } finally {
       setBackupLoading(false)
     }
   }
 
-  const handleMainSiteGitLabBackup = async () => {
+  const handleMainSiteGitHubBackup = async () => {
     setBackupLoading(true)
     try {
       const response = await fetch('/api/system/backup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'gitlab-main' })
+        body: JSON.stringify({ action: 'github-main' })
       })
       const data = await response.json()
 
@@ -544,14 +544,14 @@ export default function SystemStatus() {
         const successCount = data.files.filter((f: any) => f.status.includes('✅')).length
         const errorCount = data.files.filter((f: any) => f.status.includes('❌')).length
         
-        alert(`✅ Ana Site GitLab yedekleme başarıyla tamamlandı!\n\n📁 Repository: ${data.repository}\n📊 Yedek Adı: ${data.backupName}\n⏰ Tarih: ${new Date(data.timestamp).toLocaleString('tr-TR')}\n\n📂 Yedekleme Yapısı:\n• ana-site/: Ana site kaynak kodları\n• database/: Ana site veritabanı yedekleme\n\n📈 İstatistikler:\n• Toplam dosya: ${data.files.length}\n• Başarılı: ${successCount}\n• Hatalı: ${errorCount}\n\n🔗 GitLab'da görüntülemek için: ${data.repository}`)
+        alert(`✅ Ana Site GitHub yedekleme başarıyla tamamlandı!\n\n📁 Repository: ${data.repository}\n📊 Yedek Adı: ${data.backupName}\n⏰ Tarih: ${new Date(data.timestamp).toLocaleString('tr-TR')}\n\n📂 Yedekleme Yapısı:\n• ana-site/: Ana site kaynak kodları\n• database/: Ana site veritabanı yedekleme\n\n📈 İstatistikler:\n• Toplam dosya: ${data.files.length}\n• Başarılı: ${successCount}\n• Hatalı: ${errorCount}\n\n🔗 GitHub'da görüntülemek için: ${data.repository}`)
         await fetchBackupStatus() // Durumu yenile
       } else {
-        alert(`❌ Ana Site GitLab yedekleme başarısız!\n\n${data.error}`)
+        alert(`❌ Ana Site GitHub yedekleme başarısız!\n\n${data.error}`)
       }
     } catch (error) {
-      alert('❌ Ana Site GitLab yedekleme sırasında hata oluştu!')
-      console.error('Main Site GitLab Backup Error:', error)
+      alert('❌ Ana Site GitHub yedekleme sırasında hata oluştu!')
+      console.error('Main Site GitHub Backup Error:', error)
     } finally {
       setBackupLoading(false)
     }
@@ -1028,7 +1028,7 @@ export default function SystemStatus() {
 
           {/* Yedekleme Yapısı Bilgisi */}
           <div className="bg-blue-50 rounded-lg p-4 mb-4">
-            <h4 className="text-sm font-medium text-blue-800 mb-3">📂 GitLab Yedekleme Sistemi</h4>
+            <h4 className="text-sm font-medium text-blue-800 mb-3">📂 GitHub Yedekleme Sistemi</h4>
             
             {/* Admin Panel Yedekleme */}
             <div className="mb-4">
@@ -1071,13 +1071,13 @@ export default function SystemStatus() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                  <span className="text-blue-700">GitHub'dan çekilir</span>
+                  <span className="text-blue-700">GitHub'a yedeklenir</span>
                 </div>
               </div>
             </div>
 
             <div className="mt-3 text-xs text-blue-600">
-              <p>💡 <strong>Not:</strong> İki ayrı yedekleme sistemi: Admin Panel ve Ana Site için ayrı GitLab repository'leri kullanılır.</p>
+              <p>💡 <strong>Not:</strong> İki ayrı yedekleme sistemi: Admin Panel ve Ana Site için ayrı GitHub repository'leri kullanılır.</p>
             </div>
           </div>
 
@@ -1097,15 +1097,15 @@ export default function SystemStatus() {
               className="flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50"
             >
               <Download className="h-4 w-4" />
-              <span>{backupLoading ? 'Admin Panel Yedekleniyor...' : 'Admin Panel GitLab\'a Yedekle'}</span>
+              <span>{backupLoading ? 'Admin Panel Yedekleniyor...' : 'Admin Panel GitHub\'a Yedekle'}</span>
             </button>
             <button 
-              onClick={handleMainSiteGitLabBackup}
+              onClick={handleMainSiteGitHubBackup}
               disabled={backupLoading}
               className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
             >
               <Download className="h-4 w-4" />
-              <span>{backupLoading ? 'Ana Site Yedekleniyor...' : 'Ana Site GitLab\'a Yedekle'}</span>
+              <span>{backupLoading ? 'Ana Site Yedekleniyor...' : 'Ana Site GitHub\'a Yedekle'}</span>
             </button>
             <button 
               onClick={handleToggleBackup}
