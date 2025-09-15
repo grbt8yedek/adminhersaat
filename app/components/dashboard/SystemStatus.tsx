@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { Activity, AlertTriangle, CheckCircle, XCircle, Settings, BarChart3, RefreshCw, HardDrive, Clock, Play, Pause, Download } from 'lucide-react'
+import { Activity, AlertTriangle, CheckCircle, XCircle, Settings, BarChart3, RefreshCw, Clock } from 'lucide-react'
 
 interface SystemMetrics {
   cpu: {
@@ -118,20 +118,6 @@ interface MaintenanceStatus {
   estimatedDuration?: string
 }
 
-interface BackupStatus {
-  config: {
-    enabled: boolean
-    schedule: string
-    retention: number
-    includeDatabase: boolean
-    includeUploads: boolean
-    includeLogs: boolean
-  }
-  lastBackup?: string
-  nextBackup?: string
-  backupSize: number
-  status: string
-}
 
 export default function SystemStatus() {
   const [systemData, setSystemData] = useState<SystemStatus | null>(null)
@@ -139,18 +125,15 @@ export default function SystemStatus() {
   const [alertData, setAlertData] = useState<AlertData | null>(null)
   const [securityStatus, setSecurityStatus] = useState<any>(null)
   const [maintenanceStatus, setMaintenanceStatus] = useState<MaintenanceStatus | null>(null)
-  const [backupStatus, setBackupStatus] = useState<BackupStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [maintenanceModalOpen, setMaintenanceModalOpen] = useState(false)
   const [logsModalOpen, setLogsModalOpen] = useState(false)
   const [alertsModalOpen, setAlertsModalOpen] = useState(false)
-  const [backupModalOpen, setBackupModalOpen] = useState(false)
   const [logs, setLogs] = useState([])
   const [logsLoading, setLogsLoading] = useState(false)
   const [alertsLoading, setAlertsLoading] = useState(false)
   const [maintenanceLoading, setMaintenanceLoading] = useState(false)
-  const [backupLoading, setBackupLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeUsers, setActiveUsers] = useState({
     current: 0,
@@ -352,17 +335,6 @@ export default function SystemStatus() {
     }
   }
 
-  const fetchBackupStatus = async () => {
-    try {
-      const response = await fetch('/api/system/backup')
-      const data = await response.json()
-      if (data.success) {
-        setBackupStatus(data.data)
-      }
-    } catch (error) {
-      console.error('Yedekleme durumu alınamadı:', error)
-    }
-  }
 
   useEffect(() => {
     fetchSystemStatus()
@@ -370,7 +342,6 @@ export default function SystemStatus() {
     fetchAlerts()
     fetchSecurityStatus()
     fetchMaintenanceStatus()
-    fetchBackupStatus()
   }, [])
 
   const handleRefresh = () => {
@@ -380,7 +351,6 @@ export default function SystemStatus() {
     fetchAlerts()
     fetchSecurityStatus()
     fetchMaintenanceStatus()
-    fetchBackupStatus()
   }
 
   const handleMaintenanceClick = async () => {
@@ -475,111 +445,6 @@ export default function SystemStatus() {
     }
   }
 
-  const handleBackupClick = () => {
-    setBackupModalOpen(true)
-  }
-
-  const handleCreateBackup = async () => {
-    setBackupLoading(true)
-    try {
-      const response = await fetch('/api/system/backup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'create' })
-      })
-      const data = await response.json()
-      
-      if (data.success) {
-        alert(`✅ Yedekleme başarıyla oluşturuldu!\n\nBoyut: ${data.size}\nKonum: ${data.path}`)
-        await fetchBackupStatus() // Durumu yenile
-      } else {
-        alert(`❌ Yedekleme oluşturulamadı!\n\n${data.error}`)
-      }
-    } catch (error) {
-      alert('❌ Yedekleme işlemi sırasında hata oluştu!')
-      console.error('Backup Error:', error)
-    } finally {
-      setBackupLoading(false)
-    }
-  }
-
-  const handleGitLabBackup = async () => {
-    setBackupLoading(true)
-    try {
-      const response = await fetch('/api/system/backup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'gitlab' })
-      })
-      const data = await response.json()
-
-      if (data.success) {
-        const successCount = data.files.filter((f: any) => f.status.includes('✅')).length
-        const errorCount = data.files.filter((f: any) => f.status.includes('❌')).length
-        
-        alert(`✅ Admin Panel GitHub yedekleme başarıyla tamamlandı!\n\n📁 Repository: ${data.repository}\n📊 Yedek Adı: ${data.backupName}\n⏰ Tarih: ${new Date(data.timestamp).toLocaleString('tr-TR')}\n\n📂 Yedekleme Yapısı:\n• admin-panel/: Admin paneli kaynak kodları\n• ana-site/: Ana site kaynak kodları\n• database/: Veritabanı yedekleme\n• uploads/: Yüklenen dosyalar\n\n📈 İstatistikler:\n• Toplam dosya: ${data.files.length}\n• Başarılı: ${successCount}\n• Hatalı: ${errorCount}\n\n🔗 GitHub'da görüntülemek için: ${data.repository}`)
-        await fetchBackupStatus() // Durumu yenile
-      } else {
-        alert(`❌ GitHub yedekleme başarısız!\n\n${data.error}`)
-      }
-    } catch (error) {
-      alert('❌ GitHub yedekleme sırasında hata oluştu!')
-      console.error('GitHub Backup Error:', error)
-    } finally {
-      setBackupLoading(false)
-    }
-  }
-
-  const handleMainSiteGitHubBackup = async () => {
-    setBackupLoading(true)
-    try {
-      const response = await fetch('/api/system/backup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'github-main' })
-      })
-      const data = await response.json()
-
-      if (data.success) {
-        const successCount = data.files.filter((f: any) => f.status.includes('✅')).length
-        const errorCount = data.files.filter((f: any) => f.status.includes('❌')).length
-        
-        alert(`✅ Ana Site GitHub yedekleme başarıyla tamamlandı!\n\n📁 Repository: ${data.repository}\n📊 Yedek Adı: ${data.backupName}\n⏰ Tarih: ${new Date(data.timestamp).toLocaleString('tr-TR')}\n\n📂 Yedekleme Yapısı:\n• ana-site/: Ana site kaynak kodları\n• database/: Ana site veritabanı yedekleme\n\n📈 İstatistikler:\n• Toplam dosya: ${data.files.length}\n• Başarılı: ${successCount}\n• Hatalı: ${errorCount}\n\n🔗 GitHub'da görüntülemek için: ${data.repository}`)
-        await fetchBackupStatus() // Durumu yenile
-      } else {
-        alert(`❌ Ana Site GitHub yedekleme başarısız!\n\n${data.error}`)
-      }
-    } catch (error) {
-      alert('❌ Ana Site GitHub yedekleme sırasında hata oluştu!')
-      console.error('Main Site GitHub Backup Error:', error)
-    } finally {
-      setBackupLoading(false)
-    }
-  }
-
-  const handleToggleBackup = async () => {
-    setBackupLoading(true)
-    try {
-      const response = await fetch('/api/system/backup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'toggle' })
-      })
-      const data = await response.json()
-      
-      if (data.success) {
-        alert(`✅ ${data.message}`)
-        await fetchBackupStatus() // Durumu yenile
-      } else {
-        alert(`❌ İşlem başarısız!\n\n${data.error}`)
-      }
-    } catch (error) {
-      alert('❌ İşlem sırasında hata oluştu!')
-      console.error('Toggle Backup Error:', error)
-    } finally {
-      setBackupLoading(false)
-    }
-  }
 
   const handleQuickAction = async (action: string) => {
     try {
@@ -595,9 +460,6 @@ export default function SystemStatus() {
           return
         case 'Log Görüntüle':
           handleLogsClick()
-          return
-        case 'Yedekleme':
-          handleBackupClick()
           return
         default:
           alert(`${action} işlemi başlatıldı!`)
@@ -942,193 +804,6 @@ export default function SystemStatus() {
         </div>
       </div>
 
-      {/* Yedekleme Durumu */}
-      {backupStatus && (
-        <div className="bg-white rounded-lg shadow p-4 lg:p-6 w-full">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Yedekleme Sistemi</h3>
-            <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-              backupStatus.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-            }`}>
-              {backupStatus.status === 'active' ? 'Aktif' : 'Pasif'}
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-            {/* Son Yedekleme */}
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium text-gray-700">Son Yedekleme</h4>
-              <div className="text-sm text-gray-600">
-                {backupStatus.lastBackup ? (
-                  <div>
-                    <p className="font-medium">{new Date(backupStatus.lastBackup).toLocaleDateString('tr-TR')}</p>
-                    <p className="text-xs">{new Date(backupStatus.lastBackup).toLocaleTimeString('tr-TR')}</p>
-                  </div>
-                ) : (
-                  <p className="text-gray-500">Henüz yedekleme yapılmamış</p>
-                )}
-              </div>
-            </div>
-
-            {/* Sonraki Yedekleme */}
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium text-gray-700">Sonraki Yedekleme</h4>
-              <div className="text-sm text-gray-600">
-                {backupStatus.nextBackup ? (
-                  <div>
-                    <p className="font-medium">{new Date(backupStatus.nextBackup).toLocaleDateString('tr-TR')}</p>
-                    <p className="text-xs">{new Date(backupStatus.nextBackup).toLocaleTimeString('tr-TR')}</p>
-                  </div>
-                ) : (
-                  <p className="text-gray-500">Planlanmamış</p>
-                )}
-              </div>
-            </div>
-
-            {/* Yedekleme Boyutu */}
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium text-gray-700">Yedekleme Boyutu</h4>
-              <div className="text-sm text-gray-600">
-                <p className="font-medium">{backupStatus.backupSize > 0 ? `${backupStatus.backupSize}MB` : '0MB'}</p>
-                <p className="text-xs text-gray-500">Toplam boyut</p>
-              </div>
-            </div>
-
-            {/* Saklama Süresi */}
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium text-gray-700">Saklama Süresi</h4>
-              <div className="text-sm text-gray-600">
-                <p className="font-medium">{backupStatus.config.retention} gün</p>
-                <p className="text-xs text-gray-500">Otomatik silme</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Yedekleme Ayarları */}
-          <div className="bg-gray-50 rounded-lg p-4 mb-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Yedekleme Ayarları</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-              <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full ${backupStatus.config.includeDatabase ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                <span className="text-gray-600">Veritabanı</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full ${backupStatus.config.includeUploads ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                <span className="text-gray-600">Yüklenen Dosyalar</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full ${backupStatus.config.includeLogs ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                <span className="text-gray-600">Sistem Logları</span>
-              </div>
-            </div>
-            <div className="mt-3 text-sm text-gray-600">
-              <p><strong>Zamanlama:</strong> {backupStatus.config.schedule}</p>
-            </div>
-          </div>
-
-          {/* Yedekleme Yapısı Bilgisi */}
-          <div className="bg-blue-50 rounded-lg p-4 mb-4">
-            <h4 className="text-sm font-medium text-blue-800 mb-3">📂 GitHub Yedekleme Sistemi</h4>
-            
-            {/* Admin Panel Yedekleme */}
-            <div className="mb-4">
-              <h5 className="text-sm font-medium text-purple-800 mb-2">🟣 Admin Panel Yedekleme</h5>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                  <span className="text-blue-700">admin-panel/</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                  <span className="text-purple-700">database/</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                  <span className="text-orange-700">uploads/</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 rounded-full bg-gray-500"></div>
-                  <span className="text-gray-700">Repository: grbt8ap-backup</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Ana Site Yedekleme */}
-            <div className="mb-4">
-              <h5 className="text-sm font-medium text-green-800 mb-2">🟢 Ana Site Yedekleme</h5>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  <span className="text-green-700">ana-site/</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                  <span className="text-purple-700">database/</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 rounded-full bg-gray-500"></div>
-                  <span className="text-gray-700">Repository: grbt8-backup</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                  <span className="text-blue-700">GitHub'a yedeklenir</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-3 text-xs text-blue-600">
-              <p>💡 <strong>Not:</strong> İki ayrı yedekleme sistemi: Admin Panel ve Ana Site için ayrı GitHub repository'leri kullanılır.</p>
-            </div>
-          </div>
-
-          {/* Yedekleme İşlemleri */}
-          <div className="flex flex-wrap gap-3">
-            <button 
-              onClick={handleCreateBackup}
-              disabled={backupLoading}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-            >
-              <Download className="h-4 w-4" />
-              <span>{backupLoading ? 'Oluşturuluyor...' : 'Manuel Yedekleme'}</span>
-            </button>
-            <button 
-              onClick={handleGitLabBackup}
-              disabled={backupLoading}
-              className="flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50"
-            >
-              <Download className="h-4 w-4" />
-              <span>{backupLoading ? 'Admin Panel Yedekleniyor...' : 'Admin Panel GitHub\'a Yedekle'}</span>
-            </button>
-            <button 
-              onClick={handleMainSiteGitHubBackup}
-              disabled={backupLoading}
-              className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
-            >
-              <Download className="h-4 w-4" />
-              <span>{backupLoading ? 'Ana Site Yedekleniyor...' : 'Ana Site GitHub\'a Yedekle'}</span>
-            </button>
-            <button 
-              onClick={handleToggleBackup}
-              disabled={backupLoading}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-md disabled:opacity-50 ${
-                backupStatus.config.enabled 
-                  ? 'bg-orange-600 text-white hover:bg-orange-700' 
-                  : 'bg-green-600 text-white hover:bg-green-700'
-              }`}
-            >
-              {backupStatus.config.enabled ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-              <span>{backupStatus.config.enabled ? 'Otomatik Yedeklemeyi Durdur' : 'Otomatik Yedeklemeyi Başlat'}</span>
-            </button>
-            <button 
-              onClick={() => setBackupModalOpen(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
-            >
-              <Settings className="h-4 w-4" />
-              <span>Ayarlar</span>
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Hızlı İşlemler */}
       <div className="bg-white rounded-lg shadow p-4 w-full">
@@ -1154,13 +829,6 @@ export default function SystemStatus() {
           >
             <BarChart3 className="h-4 w-4" />
             <span>Log Görüntüle</span>
-          </button>
-          <button 
-            onClick={() => handleQuickAction('Yedekleme')}
-            className="flex items-center space-x-2 px-3 py-2 text-sm bg-orange-50 text-orange-700 rounded-md hover:bg-orange-100"
-          >
-            <HardDrive className="h-4 w-4" />
-            <span>Yedekleme</span>
           </button>
         </div>
       </div>
@@ -1393,202 +1061,6 @@ export default function SystemStatus() {
         </div>
       )}
 
-      {/* Backup Settings Modal */}
-      {backupModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setBackupModalOpen(false)} />
-          <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full">
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-semibold text-gray-900">Yedekleme Ayarları</h2>
-              <button
-                onClick={() => setBackupModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            {/* Content */}
-            <div className="p-6">
-              {backupStatus && (
-                <div className="space-y-6">
-                  {/* Otomatik Yedekleme */}
-                  <div className="space-y-3">
-                    <h3 className="text-lg font-medium text-gray-900">Otomatik Yedekleme</h3>
-                    <div className="flex items-center space-x-3">
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={backupStatus.config.enabled}
-                          onChange={(e) => {
-                            setBackupStatus({
-                              ...backupStatus,
-                              config: { ...backupStatus.config, enabled: e.target.checked }
-                            })
-                          }}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">Otomatik yedeklemeyi etkinleştir</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Zamanlama */}
-                  <div className="space-y-3">
-                    <h3 className="text-lg font-medium text-gray-900">Zamanlama</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Saat</label>
-                        <select 
-                          value={backupStatus.config.schedule.split(' ')[1] || '2'}
-                          onChange={(e) => {
-                            const newSchedule = `0 ${e.target.value} * * *`
-                            setBackupStatus({
-                              ...backupStatus,
-                              config: { ...backupStatus.config, schedule: newSchedule }
-                            })
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          {Array.from({ length: 24 }, (_, i) => (
-                            <option key={i} value={i}>{i.toString().padStart(2, '0')}:00</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Saklama Süresi (gün)</label>
-                        <input
-                          type="number"
-                          min="1"
-                          max="365"
-                          value={backupStatus.config.retention}
-                          onChange={(e) => {
-                            setBackupStatus({
-                              ...backupStatus,
-                              config: { ...backupStatus.config, retention: parseInt(e.target.value) }
-                            })
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* İçerik Seçimi */}
-                  <div className="space-y-3">
-                    <h3 className="text-lg font-medium text-gray-900">Yedekleme İçeriği</h3>
-                    <div className="space-y-2">
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={backupStatus.config.includeDatabase}
-                          onChange={(e) => {
-                            setBackupStatus({
-                              ...backupStatus,
-                              config: { ...backupStatus.config, includeDatabase: e.target.checked }
-                            })
-                          }}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">Veritabanı</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={backupStatus.config.includeUploads}
-                          onChange={(e) => {
-                            setBackupStatus({
-                              ...backupStatus,
-                              config: { ...backupStatus.config, includeUploads: e.target.checked }
-                            })
-                          }}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">Yüklenen Dosyalar</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={backupStatus.config.includeLogs}
-                          onChange={(e) => {
-                            setBackupStatus({
-                              ...backupStatus,
-                              config: { ...backupStatus.config, includeLogs: e.target.checked }
-                            })
-                          }}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">Sistem Logları</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Özet */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-medium text-gray-900 mb-2">Yedekleme Özeti</h4>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      <p><strong>Durum:</strong> {backupStatus.config.enabled ? 'Aktif' : 'Pasif'}</p>
-                      <p><strong>Zamanlama:</strong> Her gün saat {backupStatus.config.schedule.split(' ')[1]}:00</p>
-                      <p><strong>Saklama:</strong> {backupStatus.config.retention} gün</p>
-                      <p><strong>İçerik:</strong> {
-                        [
-                          backupStatus.config.includeDatabase && 'Veritabanı',
-                          backupStatus.config.includeUploads && 'Dosyalar',
-                          backupStatus.config.includeLogs && 'Loglar'
-                        ].filter(Boolean).join(', ')
-                      }</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="flex items-center justify-end space-x-3 p-6 border-t bg-gray-50">
-              <button
-                onClick={() => setBackupModalOpen(false)}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors"
-              >
-                İptal
-              </button>
-              <button
-                onClick={async () => {
-                  if (backupStatus) {
-                    try {
-                      const response = await fetch('/api/system/backup', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                          action: 'configure', 
-                          config: backupStatus.config 
-                        })
-                      })
-                      const data = await response.json()
-                      
-                      if (data.success) {
-                        alert('✅ Yedekleme ayarları güncellendi!')
-                        await fetchBackupStatus()
-                        setBackupModalOpen(false)
-                      } else {
-                        alert(`❌ Ayarlar güncellenemedi!\n\n${data.error}`)
-                      }
-                    } catch (error) {
-                      alert('❌ İşlem sırasında hata oluştu!')
-                      console.error('Config Error:', error)
-                    }
-                  }
-                }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              >
-                Kaydet
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 } 

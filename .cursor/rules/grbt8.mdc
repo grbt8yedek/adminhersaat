@@ -13,4 +13,4 @@ Bu proje bir seyahat sitesinin admin panelidir, sistem @https://github.com/Depog
 ---
 description: Seyahat sitesi admin paneli - Neon PostgreSQL database ile çalışmaktadır, resimler base64 olarak database'de saklanır
 globs: ["**/*"]
-alwaysAppl
+alwaysApply: true
