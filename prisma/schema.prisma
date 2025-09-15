@@ -184,6 +184,15 @@ model SystemSettings {
   maintenanceReason String?
   maintenanceStart  DateTime?
   estimatedDuration String?
+  
+  // Yedekleme ayarları
+  backupEnabled     Boolean  @default(false)
+  backupSchedule    String   @default("0 2 * * *")
+  backupRetention   Int      @default(7)
+  backupDatabase    Boolean  @default(true)
+  backupUploads     Boolean  @default(true)
+  backupLogs        Boolean  @default(true)
+  
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }

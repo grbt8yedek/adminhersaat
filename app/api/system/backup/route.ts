@@ -40,42 +40,44 @@ export async function GET() {
       includeLogs: true
     }
 
-    // Vercel'de dosya okuma da sorunlu olabilir, try-catch ile handle et
+    // Database'den backup config'i al (Vercel uyumlu)
     try {
-      if (fs.existsSync(configPath)) {
-        const configData = fs.readFileSync(configPath, 'utf8')
-        config = { ...config, ...JSON.parse(configData) }
-        console.log('✅ Config dosyası okundu:', config)
-      } else {
-        console.log('⚠️ Config dosyası bulunamadı, default config kullanılıyor')
-      }
-    } catch (fileError) {
-      console.log('⚠️ Config dosyası okunamadı (Vercel sınırlaması), default config kullanılıyor')
+      const { PrismaClient } = await import('@prisma/client')
+      const prisma = new PrismaClient()
       
-      // Vercel'de sistem loglarından son config'i almaya çalış
-      try {
-        const { PrismaClient } = await import('@prisma/client')
-        const prisma = new PrismaClient()
-        
-        const lastConfigLog = await prisma.systemLog.findFirst({
-          where: {
-            source: 'backup',
-            message: 'Yedekleme konfigürasyonu güncellendi'
-          },
-          orderBy: {
-            timestamp: 'desc'
-          }
-        })
-        
-        if (lastConfigLog && lastConfigLog.metadata) {
-          const logConfig = JSON.parse(lastConfigLog.metadata)
-          config = { ...config, ...logConfig }
-          console.log('✅ Config sistem loglarından alındı:', config)
+      const systemSettings = await prisma.systemSettings.findFirst({
+        orderBy: {
+          updatedAt: 'desc'
         }
-        
-        await prisma.$disconnect()
-      } catch (dbError) {
-        console.log('⚠️ Database\'den config alınamadı, default kullanılıyor')
+      })
+      
+      if (systemSettings) {
+        config = {
+          enabled: systemSettings.backupEnabled,
+          schedule: systemSettings.backupSchedule,
+          retention: systemSettings.backupRetention,
+          includeDatabase: systemSettings.backupDatabase,
+          includeUploads: systemSettings.backupUploads,
+          includeLogs: systemSettings.backupLogs
+        }
+        console.log('✅ Config database\'den alındı:', config)
+      } else {
+        console.log('⚠️ SystemSettings bulunamadı, default config kullanılıyor')
+      }
+      
+      await prisma.$disconnect()
+    } catch (dbError) {
+      console.log('⚠️ Database\'den config alınamadı, default kullanılıyor:', dbError)
+      
+      // Fallback: Dosyadan okumaya çalış
+      try {
+        if (fs.existsSync(configPath)) {
+          const configData = fs.readFileSync(configPath, 'utf8')
+          config = { ...config, ...JSON.parse(configData) }
+          console.log('✅ Config dosyadan alındı (fallback)')
+        }
+      } catch (fileError) {
+        console.log('⚠️ Config dosyası da okunamadı, default kullanılıyor')
       }
     }
 
@@ -193,17 +195,42 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'configure') {
-      // Yedekleme konfigürasyonunu güncelle (Vercel uyumlu)
+      // Yedekleme konfigürasyonunu güncelle (Database'de sakla)
       try {
-        const configPath = path.join(process.cwd(), 'shared', 'backup-config.json')
+        const { PrismaClient } = await import('@prisma/client')
+        const prisma = new PrismaClient()
         
-        // Vercel'de dosya yazma yetkisi olmayabilir, try-catch ile handle et
-        try {
-          fs.writeFileSync(configPath, JSON.stringify(config, null, 2))
-          console.log('✅ Config dosyası güncellendi:', configPath)
-        } catch (fileError) {
-          console.log('⚠️ Config dosyası yazılamadı (Vercel sınırlaması):', fileError)
-          // Vercel'de dosya yazma başarısız olsa bile devam et
+        // SystemSettings tablosunda backup config'i güncelle veya oluştur
+        const existingSettings = await prisma.systemSettings.findFirst()
+        
+        if (existingSettings) {
+          // Mevcut ayarları güncelle
+          await prisma.systemSettings.update({
+            where: { id: existingSettings.id },
+            data: {
+              backupEnabled: config.enabled,
+              backupSchedule: config.schedule,
+              backupRetention: config.retention,
+              backupDatabase: config.includeDatabase,
+              backupUploads: config.includeUploads,
+              backupLogs: config.includeLogs,
+              updatedAt: new Date()
+            }
+          })
+          console.log('✅ Backup config güncellendi (SystemSettings)')
+        } else {
+          // Yeni ayar oluştur
+          await prisma.systemSettings.create({
+            data: {
+              backupEnabled: config.enabled,
+              backupSchedule: config.schedule,
+              backupRetention: config.retention,
+              backupDatabase: config.includeDatabase,
+              backupUploads: config.includeUploads,
+              backupLogs: config.includeLogs
+            }
+          })
+          console.log('✅ Backup config oluşturuldu (SystemSettings)')
         }
         
         await safeCreateLog({
@@ -212,16 +239,18 @@ export async function POST(request: NextRequest) {
           source: 'backup',
           metadata: { 
             ...config,
-            configSaved: 'success',
+            configSaved: 'database',
             platform: 'vercel'
           }
         })
+        
+        await prisma.$disconnect()
 
         return NextResponse.json({
           success: true,
           message: 'Yedekleme konfigürasyonu güncellendi',
           config: config,
-          note: 'Vercel platformunda config memory\'de saklandı'
+          note: 'Config database\'de güvenli şekilde saklandı'
         })
       } catch (error) {
         console.error('Config güncelleme hatası:', error)
