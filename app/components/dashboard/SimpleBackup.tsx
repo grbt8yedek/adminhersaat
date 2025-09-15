@@ -85,18 +85,18 @@ export default function SimpleBackup() {
       const response = await fetch('/api/system/backup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'create' })
+        body: JSON.stringify({ action: 'gitlab' })
       })
       const data = await response.json()
       
       if (data.success) {
-        alert(`✅ Yedekleme başarıyla oluşturuldu!\n\nBoyut: ${data.size}\nKonum: ${data.path}`)
+        alert(`✅ GitLab yedekleme başarıyla tamamlandı!\n\n📦 Repository: ${data.repository}\n📊 Dosya Sayısı: ${data.files.length}\n📅 Tarih: ${new Date().toLocaleString('tr-TR')}\n\n🔗 GitLab: https://gitlab.com/depogrbt8-backup/grbt8ap-backup`)
         fetchBackupStatus()
       } else {
-        alert('❌ Yedekleme oluşturulamadı: ' + data.error)
+        alert('❌ GitLab yedekleme başarısız: ' + data.error)
       }
     } catch (error) {
-      alert('❌ Yedekleme işlemi başarısız')
+      alert('❌ GitLab yedekleme işlemi başarısız')
     } finally {
       setLoading(false)
     }
@@ -162,7 +162,7 @@ export default function SimpleBackup() {
           className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Download className="h-4 w-4 mr-2" />
-          {loading ? 'Yedekleniyor...' : 'Yedek Al'}
+          {loading ? 'GitLab\'a yedekleniyor...' : 'GitLab\'a Yedek Al'}
         </button>
 
         <div className="flex items-center gap-2">
