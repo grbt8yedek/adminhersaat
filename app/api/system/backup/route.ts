@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
       const configPath = path.join(process.cwd(), 'shared', 'backup-config.json')
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2))
       
-      await createLog({
+      await safeCreateLog({
         level: 'INFO',
         message: 'Yedekleme konfigürasyonu güncellendi',
         source: 'backup',
@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
       currentConfig.enabled = !currentConfig.enabled
       fs.writeFileSync(configPath, JSON.stringify(currentConfig, null, 2))
 
-      await createLog({
+      await safeCreateLog({
         level: 'INFO',
         message: `Otomatik yedekleme ${currentConfig.enabled ? 'açıldı' : 'kapatıldı'}`,
         source: 'backup',
