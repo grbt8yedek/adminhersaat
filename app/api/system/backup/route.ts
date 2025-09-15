@@ -149,24 +149,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(result)
     }
 
+    // GitLab endpoint devre dışı - sadece GitHub kullanılıyor
     if (action === 'gitlab-main') {
-      // Ana site için GitLab'a yedekleme oluştur (eski sistem)
-      const result = await createMainSiteGitLabBackup()
-
-      if (result.success) {
-        await safeCreateLog({
-          level: 'INFO',
-          message: 'Ana site GitLab yedekleme oluşturuldu',
-          source: 'backup-gitlab-main',
-          metadata: {
-            repository: result.repository,
-            files: result.files,
-            size: 'N/A'
-          }
-        })
-      }
-
-      return NextResponse.json(result)
+      return NextResponse.json({
+        success: false,
+        error: 'GitLab yedekleme devre dışı. Lütfen GitHub yedekleme kullanın.',
+        message: 'Ana Site GitHub yedekleme sistemine geçildi.'
+      })
     }
 
     if (action === 'configure') {
