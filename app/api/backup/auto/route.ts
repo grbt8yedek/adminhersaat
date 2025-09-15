@@ -271,7 +271,7 @@ async function createUploadBackup() {
           total_files: uploadFiles.length,
           total_size_bytes: totalSize,
           total_size_mb: `${sizeInMB} MB`,
-          file_types: [...new Set(uploadFiles.map(f => f.type))]
+          file_types: Array.from(new Set(uploadFiles.map(f => f.type)))
         }
       },
       stats: {
