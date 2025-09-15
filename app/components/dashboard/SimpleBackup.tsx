@@ -110,7 +110,10 @@ export default function SimpleBackup() {
     if (!tempConfig) return
 
     try {
-      const response = await fetch('/api/system/backup', {
+      setLoading(true)
+      
+      // Önce ayarları kaydet
+      const configResponse = await fetch('/api/system/backup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -118,17 +121,30 @@ export default function SimpleBackup() {
           config: tempConfig 
         })
       })
-      const data = await response.json()
       
-      if (data.success) {
-        alert('✅ Otomatik yedekleme ayarları kaydedildi!')
-        await fetchBackupStatus()
-        setAutoBackupModalOpen(false)
+      if (configResponse.ok) {
+        // Ayarlar kaydedildikten sonra GitLab'a yedekleme yap
+        const backupResponse = await fetch('/api/system/backup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'gitlab' })
+        })
+        const backupData = await backupResponse.json()
+        
+        if (backupData.success) {
+          alert(`✅ Otomatik yedekleme ayarları kaydedildi ve GitLab'a yedekleme yapıldı!\n\n📦 Repository: ${backupData.repository}\n📊 Dosya Sayısı: ${backupData.files.length}\n📅 Tarih: ${new Date().toLocaleString('tr-TR')}\n\n🔗 GitLab: https://gitlab.com/depogrbt8-backup/grbt8ap-backup\n\n🔄 Sistem artık sağlama alındı!`)
+          await fetchBackupStatus()
+          setAutoBackupModalOpen(false)
+        } else {
+          alert('✅ Ayarlar kaydedildi ancak GitLab yedekleme başarısız: ' + backupData.error)
+        }
       } else {
-        alert('❌ Ayarlar kaydedilemedi: ' + data.error)
+        alert('❌ Ayarlar kaydedilemedi')
       }
     } catch (error) {
       alert('❌ İşlem başarısız')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -331,9 +347,10 @@ export default function SimpleBackup() {
               </button>
               <button
                 onClick={handleSaveAutoBackup}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                disabled={loading}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Kaydet
+                {loading ? 'GitLab\'a yedekleniyor...' : 'Kaydet ve GitLab\'a Yedekle'}
               </button>
             </div>
           </div>
