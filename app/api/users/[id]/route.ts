@@ -109,6 +109,12 @@ export async function PUT(
         lastName: body.lastName || '',
         email: body.email,
         phone: body.phone,
+        countryCode: body.countryCode,
+        birthDay: body.birthDay || null,
+        birthMonth: body.birthMonth || null,
+        birthYear: body.birthYear || null,
+        gender: body.gender || null,
+        identityNumber: body.identityNumber || null,
         updatedAt: new Date()
       }
     })
