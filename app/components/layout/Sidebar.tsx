@@ -1,5 +1,5 @@
 'use client'
-import { Calendar, Clock, User, Layout, Megaphone, CreditCard, FileText, Settings, BookOpen, BarChart3, Search, Mail, Code, Globe, Briefcase } from 'lucide-react'
+import { Calendar, Clock, User, Layout, Megaphone, CreditCard, FileText, Settings, BookOpen, BarChart3, Search, Mail, Code, Globe } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -136,18 +136,6 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
           >
             <Globe className="h-4 w-4" />
             <span>Dış API</span>
-          </Link>
-          <Link 
-            href="/calismalarim"
-            onClick={() => setActiveTab('calismalarim')}
-            className={`w-full flex items-center space-x-3 px-3 py-2 text-sm font-medium rounded-md ${
-              pathname === '/calismalarim' 
-                ? 'text-gray-900 bg-blue-50' 
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-            }`}
-          >
-            <Briefcase className="h-4 w-4" />
-            <span>Çalışmalarım</span>
           </Link>
           <Link 
             href="/rezervasyonlar"
