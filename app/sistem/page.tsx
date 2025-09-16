@@ -2,7 +2,6 @@
 import { useState } from 'react'
 import Sidebar from '../components/layout/Sidebar'
 import Header from '../components/layout/Header'
-import SystemStatus from '../components/dashboard/SystemStatus'
 import AdminPanelStatus from '../components/dashboard/AdminPanelStatus'
 import MainSiteStatus from '../components/dashboard/MainSiteStatus'
 import SimpleBackup from '../components/dashboard/SimpleBackup'
@@ -26,7 +25,6 @@ export default function SistemPage() {
             <MainSiteStatus />
             <AdminPanelStatus />
             <SimpleBackup />
-            <SystemStatus />
           </div>
         </main>
       </div>
