@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import resendService from '@/app/lib/resend'
 
 export async function POST(request: Request) {
   try {
@@ -44,34 +45,76 @@ export async function POST(request: Request) {
       }, { status: 400 })
     }
 
-    // Email gönderme işlemi simülasyonu
-    const emailData = {
-      id: Date.now().toString(),
-      recipientType,
-      recipients,
-      subject,
-      content,
-      cc: cc || null,
-      bcc: bcc || null,
-      templateId: templateId || null,
-      priority: priority || 'normal',
-      scheduledAt: scheduledAt || new Date().toISOString(),
-      status: 'queued',
-      createdAt: new Date().toISOString()
+    // Resend API key kontrolü
+    if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 're_your_api_key_here') {
+      // API key yoksa simülasyon modu
+      console.log('🔄 RESEND_API_KEY bulunamadı, simülasyon modunda çalışıyor')
+      
+      const result = {
+        success: true,
+        message: recipientType === 'bulk' 
+          ? `${recipients.length} kişiye email başarıyla kuyruğa alındı (simülasyon)`
+          : 'Email başarıyla kuyruğa alındı (simülasyon)',
+        data: {
+          emailId: Date.now().toString(),
+          status: 'simulated',
+          estimatedDelivery: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+          recipientCount: recipients.length,
+          recipients: recipients
+        }
+      }
+      return NextResponse.json(result)
     }
 
-    // Simüle edilmiş gönderim sonucu
+    // Gerçek email gönderimi
+    const emailResults = []
+    let successCount = 0
+    let errorCount = 0
+
+    for (const recipient of recipients) {
+      try {
+        const result = await resendService.sendEmail({
+          to: recipient,
+          subject,
+          html: content,
+          cc: cc ? [cc] : undefined,
+          bcc: bcc ? [bcc] : undefined
+        })
+
+        emailResults.push({
+          recipient,
+          success: result.success,
+          messageId: result.messageId,
+          error: result.error
+        })
+
+        if (result.success) {
+          successCount++
+        } else {
+          errorCount++
+        }
+      } catch (error: any) {
+        emailResults.push({
+          recipient,
+          success: false,
+          error: error.message
+        })
+        errorCount++
+      }
+    }
+
     const result = {
-      success: true,
+      success: successCount > 0,
       message: recipientType === 'bulk' 
-        ? `${recipients.length} kişiye email başarıyla kuyruğa alındı`
-        : 'Email başarıyla kuyruğa alındı',
+        ? `${successCount}/${recipients.length} email başarıyla gönderildi`
+        : successCount > 0 ? 'Email başarıyla gönderildi' : 'Email gönderilemedi',
       data: {
-        emailId: emailData.id,
-        status: 'queued',
-        estimatedDelivery: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // 5 dakika sonra
+        emailId: Date.now().toString(),
+        status: successCount > 0 ? 'sent' : 'failed',
         recipientCount: recipients.length,
-        recipients: recipients
+        successCount,
+        errorCount,
+        results: emailResults
       }
     }
 
