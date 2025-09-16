@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { gzip, gunzip } from 'zlib'
+import { promisify } from 'util'
+
+const gzipAsync = promisify(gzip)
+const gunzipAsync = promisify(gunzip)
 
 // 6 saatte bir çalışacak cron job - Vercel Cron Jobs
 // Vercel dashboard'dan manuel olarak ayarlanacak
@@ -57,28 +62,44 @@ export async function GET(request: NextRequest) {
         upload_size: uploadBackup.stats?.total_size || '0 MB',
         vercel_projects: vercelBackup.stats?.total_projects || 0
       },
+      storage_optimization: {
+        compression: 'GZIP enabled',
+        retention: '7 days auto-cleanup',
+        estimated_monthly_size: '~200 MB (compressed)',
+        github_limit: '10 GB (safe)'
+      },
       next_backup: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString() // 6 saat sonra
     }
     
     // 5. GITHUB'A GÖNDER
     console.log('🚀 GitHub\'a gönderiliyor...')
     
-    // Database backup
+    // Database backup (GZIP sıkıştırılmış)
     if (databaseBackup.success) {
+      const dbContent = JSON.stringify(databaseBackup.data, null, 2)
+      const compressedDb = await gzipAsync(Buffer.from(dbContent))
+      
       await uploadToGitHub(
-        `database/db_backup_${timestamp}.json`,
-        JSON.stringify(databaseBackup.data, null, 2),
-        `Database backup - ${new Date().toLocaleString('tr-TR')}`
+        `database/db_backup_${timestamp}.json.gz`,
+        compressedDb.toString('base64'),
+        `Database backup (GZIP compressed) - ${new Date().toLocaleString('tr-TR')}`
       )
+      
+      console.log(`📦 Database sıkıştırıldı: ${dbContent.length} → ${compressedDb.length} bytes (${((1 - compressedDb.length / dbContent.length) * 100).toFixed(1)}% küçülme)`)
     }
     
-    // Upload backup
+    // Upload backup (GZIP sıkıştırılmış)
     if (uploadBackup.success) {
+      const uploadContent = JSON.stringify(uploadBackup.data, null, 2)
+      const compressedUpload = await gzipAsync(Buffer.from(uploadContent))
+      
       await uploadToGitHub(
-        `uploads/upload_backup_${timestamp}.json`,
-        JSON.stringify(uploadBackup.data, null, 2),
-        `Upload files backup - ${new Date().toLocaleString('tr-TR')}`
+        `uploads/upload_backup_${timestamp}.json.gz`,
+        compressedUpload.toString('base64'),
+        `Upload files backup (GZIP compressed) - ${new Date().toLocaleString('tr-TR')}`
       )
+      
+      console.log(`📦 Upload sıkıştırıldı: ${uploadContent.length} → ${compressedUpload.length} bytes (${((1 - compressedUpload.length / uploadContent.length) * 100).toFixed(1)}% küçülme)`)
     }
     
     // Vercel backup
@@ -128,8 +149,14 @@ ${new Date(Date.now() + 6 * 60 * 60 * 1000).toLocaleString('tr-TR')}
       `README güncelleme - ${new Date().toLocaleString('tr-TR')}`
     )
     
+    // 6. ESKİ YEDEKLERİ TEMİZLE (7 günden eski)
+    console.log('🧹 Eski yedekler temizleniyor...')
+    const cleanupResult = await cleanupOldBackups()
+    console.log('✅ Temizlik tamamlandı:', cleanupResult)
+    
     console.log('✅ Yedekleme tamamlandı!')
     console.log('📊 Özet:', backupReport.stats)
+    console.log('🧹 Temizlik:', cleanupResult)
     
     return NextResponse.json({
       success: true,
@@ -391,6 +418,115 @@ async function uploadToGitHub(filePath: string, content: string, commitMessage: 
     
   } catch (error) {
     console.error(`❌ GitHub yükleme hatası: ${filePath}`, error)
+    return false
+  }
+}
+
+// Eski yedekleri temizleme fonksiyonu (7 günden eski)
+async function cleanupOldBackups() {
+  try {
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    
+    console.log('🗓️ 7 günden eski yedekler aranıyor...')
+    
+    // GitHub repository içeriğini al
+    const response = await fetch(`${GITHUB_API}/repos/${BACKUP_REPO}/contents`, {
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    })
+    
+    if (!response.ok) {
+      return { success: false, error: 'Repository içeriği alınamadı' }
+    }
+    
+    const contents = await response.json()
+    let deletedFiles = 0
+    let totalSizeSaved = 0
+    
+    // Her klasörü kontrol et
+    for (const item of contents) {
+      if (item.type === 'dir' && (item.name === 'database' || item.name === 'uploads' || item.name === 'vercel' || item.name === 'reports')) {
+        const folderResponse = await fetch(item.url, {
+          headers: {
+            'Authorization': `token ${GITHUB_TOKEN}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        })
+        
+        if (folderResponse.ok) {
+          const folderContents = await folderResponse.json()
+          
+          for (const file of folderContents) {
+            // Dosya adından tarihi çıkar (backup_2025-09-15 formatı)
+            const dateMatch = file.name.match(/(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2})/)
+            if (dateMatch) {
+              const fileDate = new Date(dateMatch[1].replace(/-/g, ':').replace('T', ' '))
+              
+              if (fileDate < sevenDaysAgo) {
+                console.log(`🗑️ Eski dosya siliniyor: ${file.name} (${fileDate.toLocaleDateString('tr-TR')})`)
+                
+                const deleteResult = await deleteFromGitHub(file.path, file.sha)
+                if (deleteResult) {
+                  deletedFiles++
+                  totalSizeSaved += file.size || 0
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    const sizeSavedMB = (totalSizeSaved / 1024 / 1024).toFixed(2)
+    
+    return {
+      success: true,
+      deletedFiles,
+      sizeSavedMB: `${sizeSavedMB} MB`,
+      message: `${deletedFiles} eski dosya silindi, ${sizeSavedMB} MB yer açıldı`
+    }
+    
+  } catch (error) {
+    console.error('❌ Temizlik hatası:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }
+  }
+}
+
+// GitHub'dan dosya silme fonksiyonu
+async function deleteFromGitHub(filePath: string, sha: string) {
+  try {
+    const url = `${GITHUB_API}/repos/${BACKUP_REPO}/contents/${filePath}`
+    
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: `Otomatik temizlik: 7 günden eski yedek silindi - ${filePath}`,
+        sha: sha,
+        branch: 'main'
+      })
+    })
+    
+    if (response.ok) {
+      console.log(`✅ Silindi: ${filePath}`)
+      return true
+    } else {
+      console.error(`❌ Silinemedi: ${filePath} - ${response.status}`)
+      return false
+    }
+    
+  } catch (error) {
+    console.error(`❌ Silme hatası: ${filePath}`, error)
     return false
   }
 }
