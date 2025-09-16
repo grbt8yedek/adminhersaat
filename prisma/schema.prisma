@@ -24,6 +24,8 @@ model User {
   birthYear     String?
   gender        String?
   identityNumber String?
+  address       String?   // Adres bilgisi eklendi
+  city          String?   // Şehir bilgisi eklendi
   isForeigner   Boolean   @default(false)
   emailVerified DateTime?
   image         String?
