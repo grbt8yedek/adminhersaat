@@ -238,7 +238,7 @@ export default function YolcularPage() {
                 </div>
               )}
 
-              {/* Yolcu Grid - 2x2 */}
+              {/* Yolcu Grid - Dinamik */}
               <div className="grid grid-cols-2 gap-6">
                 {passengers.map((passenger, index) => (
                   <div key={passenger.id} className="border border-gray-200 rounded-lg p-4">
@@ -349,17 +349,15 @@ export default function YolcularPage() {
                 ))}
               </div>
 
-              {/* Boş alanları doldur */}
-              {passengers.length < 4 && (
-                <div className="grid grid-cols-2 gap-6 mt-6">
-                  {Array.from({ length: 4 - passengers.length }).map((_, index) => (
-                    <div key={`empty-${index}`} className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex items-center justify-center">
-                      <div className="text-center text-gray-400">
-                        <User className="h-8 w-8 mx-auto mb-2" />
-                        <p className="text-sm">Boş Alan</p>
-                      </div>
+              {/* Eğer yolcu sayısı tek ise boş alan ekle */}
+              {passengers.length % 2 === 1 && (
+                <div className="mt-6">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex items-center justify-center">
+                    <div className="text-center text-gray-400">
+                      <User className="h-8 w-8 mx-auto mb-2" />
+                      <p className="text-sm">Boş Alan</p>
                     </div>
-                  ))}
+                  </div>
                 </div>
               )}
             </div>
