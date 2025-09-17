@@ -103,28 +103,61 @@ export async function PUT(
     const userId = params.id
     const body = await request.json()
 
-    // Kullanıcıyı güncelle
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        firstName: body.firstName || '',
-        lastName: body.lastName || '',
-        email: body.email,
-        phone: body.phone,
-        countryCode: body.countryCode,
-        birthDay: body.birthDay || null,
-        birthMonth: body.birthMonth || null,
-        birthYear: body.birthYear || null,
-        gender: body.gender || null,
-        identityNumber: body.identityNumber || null,
-        updatedAt: new Date()
+    // Transaction ile kullanıcı ve ilk yolcu bilgilerini güncelle
+    const result = await prisma.$transaction(async (tx) => {
+      // Kullanıcıyı güncelle
+      const updatedUser = await tx.user.update({
+        where: { id: userId },
+        data: {
+          firstName: body.firstName || '',
+          lastName: body.lastName || '',
+          email: body.email,
+          phone: body.phone,
+          countryCode: body.countryCode,
+          birthDay: body.birthDay || null,
+          birthMonth: body.birthMonth || null,
+          birthYear: body.birthYear || null,
+          gender: body.gender || null,
+          identityNumber: body.identityNumber || null,
+          updatedAt: new Date()
+        }
+      })
+
+      // İlk yolcu (hesap sahibi) bilgilerini güncelle
+      // İlk yolcu genellikle en eski tarihli yolcu olur
+      const firstPassenger = await tx.passenger.findFirst({
+        where: { userId: userId },
+        orderBy: { createdAt: 'asc' }
+      })
+
+      if (firstPassenger) {
+        await tx.passenger.update({
+          where: { id: firstPassenger.id },
+          data: {
+            firstName: body.firstName || '',
+            lastName: body.lastName || '',
+            phone: body.phone,
+            countryCode: body.countryCode,
+            birthDay: body.birthDay || null,
+            birthMonth: body.birthMonth || null,
+            birthYear: body.birthYear || null,
+            gender: body.gender || null,
+            identityNumber: body.identityNumber || null,
+            updatedAt: new Date()
+          }
+        })
+        console.log(`✅ İlk yolcu bilgileri güncellendi: ${firstPassenger.id}`)
+      } else {
+        console.log('⚠️ İlk yolcu bulunamadı, sadece kullanıcı güncellendi')
       }
+
+      return updatedUser
     })
 
     return NextResponse.json({
       success: true,
-      data: updatedUser,
-      message: 'Kullanıcı başarıyla güncellendi'
+      data: result,
+      message: 'Kullanıcı ve ilk yolcu bilgileri başarıyla güncellendi'
     })
 
   } catch (error) {
