@@ -23,6 +23,8 @@ export async function GET(
         birthYear: true,
         gender: true,
         identityNumber: true,
+        address: true,
+        city: true,
         createdAt: true,
         updatedAt: true,
         _count: {

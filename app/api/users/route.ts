@@ -18,6 +18,8 @@ export async function GET(request: NextRequest) {
         birthYear: true,
         gender: true,
         identityNumber: true,
+        address: true,
+        city: true,
         isForeigner: true,
         emailVerified: true,
         image: true,
