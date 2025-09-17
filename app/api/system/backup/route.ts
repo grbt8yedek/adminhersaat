@@ -419,7 +419,7 @@ async function createGitLabBackup() {
     const adminBackup = await createStructuredAdminBackup()
     for (const [filePath, content] of Object.entries(adminBackup.files)) {
       const result = await uploadFileToGitLab(
-        `admin-panel/${filePath}`,
+        `admin-panel/${backupName}/${filePath}`,
         content,
         backupName,
         PROJECT_ID,
@@ -434,7 +434,7 @@ async function createGitLabBackup() {
     const mainBackup = await createStructuredMainBackup()
     for (const [filePath, content] of Object.entries(mainBackup.files)) {
       const result = await uploadFileToGitLab(
-        `ana-site/${filePath}`,
+        `ana-site/${backupName}/${filePath}`,
         content,
         backupName,
         PROJECT_ID,
@@ -448,7 +448,7 @@ async function createGitLabBackup() {
     console.log('Database yedekleniyor...')
     const databaseDump = await createRealDatabaseDump()
     const dbResult = await uploadFileToGitLab(
-      `database/${backupName}_database.json`,
+      `database/${backupName}/database.json`,
       JSON.stringify(databaseDump, null, 2),
       backupName,
       PROJECT_ID,
@@ -462,7 +462,7 @@ async function createGitLabBackup() {
     const uploadsBackup = await createStructuredUploadsBackup()
     for (const [filePath, content] of Object.entries(uploadsBackup.files)) {
       const result = await uploadFileToGitLab(
-        `uploads/${filePath}`,
+        `uploads/${backupName}/${filePath}`,
         content,
         backupName,
         PROJECT_ID,
@@ -531,7 +531,7 @@ Bu yedekten geri yükleme yapmak için:
 `
 
     const readmeResult = await uploadFileToGitLab(
-      `README_${backupName}.md`,
+      `${backupName}/README.md`,
       readmeContent,
       backupName,
       PROJECT_ID,
