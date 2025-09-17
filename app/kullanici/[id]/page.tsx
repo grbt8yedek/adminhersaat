@@ -266,7 +266,10 @@ export default function KullaniciDetayPage() {
                 <div>
                   <h3 className="text-xs font-medium text-gray-900 mb-2">İstatistikler</h3>
                   <div className="grid grid-cols-5 gap-4">
-                    <div className="text-center p-3 bg-blue-50 rounded-lg">
+                    <div 
+                      className="text-center p-3 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors"
+                      onClick={() => router.push(`/kullanici/${params.id}/yolcular`)}
+                    >
                       <div className="text-lg font-bold text-blue-600">{user?.passengerCount || 0}</div>
                       <div className="text-xs text-gray-600">Yolcu</div>
                     </div>
