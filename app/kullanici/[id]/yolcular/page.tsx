@@ -111,7 +111,7 @@ export default function YolcularPage() {
       // Her yolcu için ayrı ayrı güncelleme yap
       const updatePromises = passengers.map(passenger => {
         const passengerData = formData[passenger.id]
-        if (!passengerData) return Promise.resolve()
+        if (!passengerData) return Promise.resolve(null)
 
         return fetch(`/api/passengers/${passenger.id}`, {
           method: 'PUT',
@@ -123,7 +123,11 @@ export default function YolcularPage() {
       })
 
       const responses = await Promise.all(updatePromises)
-      const results = await Promise.all(responses.map(r => r.json()))
+      const results = await Promise.all(
+        responses
+          .filter(r => r !== null)
+          .map(r => r!.json())
+      )
 
       // Başarılı güncellemeleri say
       const successCount = results.filter(r => r.success).length
