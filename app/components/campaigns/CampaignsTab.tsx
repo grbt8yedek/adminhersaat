@@ -64,48 +64,30 @@ export default function CampaignsTab() {
     fetchCampaigns()
   }, [])
 
-  // Kampanya kaydetme - Optimistic Update
-  const handleSaveCampaign = async (campaign: Campaign) => {
-    try {
-      // Optimistic update - UI'yi hemen güncelle
-      if (campaign.id) {
-        // Güncelleme
-        setCampaigns(prev => prev.map(c => c.id === campaign.id ? campaign : c))
-      } else {
-        // Yeni ekleme - geçici ID ile
-        const tempId = `temp-${Date.now()}`
-        setCampaigns(prev => [...prev, { ...campaign, id: tempId }])
-      }
-
-      // Modal'ı hemen kapat - kullanıcı hızlı feedback alsın
+  // Kampanya kaydetme - Modal'dan gelen veriyi direkt kullan (API çağrısı Modal'da yapılıyor)
+  const handleSaveCampaign = (savedCampaign: Campaign) => {
+    console.log('📥 Modal\'dan kampanya geldi:', savedCampaign)
+    
+    if (savedCampaign.id && !savedCampaign.id.startsWith('temp-')) {
+      // Gerçek ID var - güncelleme veya yeni kayıt başarılı
+      setCampaigns(prev => {
+        const exists = prev.find(c => c.id === savedCampaign.id)
+        if (exists) {
+          // Güncelleme
+          return prev.map(c => c.id === savedCampaign.id ? savedCampaign : c)
+        } else {
+          // Yeni ekleme
+          return [...prev, savedCampaign]
+        }
+      })
+      
+      // Modal'ı kapat
       setIsModalOpen(false)
       setSelectedCampaign(null)
-
-      const response = await fetch('/api/campaigns', {
-        method: campaign.id ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(campaign)
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        // Gerçek veriyle güncelle
-        if (!campaign.id) {
-          setCampaigns(prev => prev.map(c => c.id.startsWith('temp-') ? result.data : c))
-        }
-        // Success feedback - daha az rahatsız edici
-        console.log('✅ Kampanya başarıyla kaydedildi')
-      } else {
-        // Hata durumunda geri al
-        await fetchCampaigns(true) // Force refresh
-        alert('Kampanya kaydetme hatası')
-      }
-    } catch (error) {
-      console.error('Save error:', error)
-      await fetchCampaigns(true) // Force refresh
-      alert('Kampanya kaydetme hatası')
+      
+      console.log('✅ Kampanya başarıyla kaydedildi ve UI güncellendi')
+    } else {
+      console.error('❌ Geçersiz kampanya verisi:', savedCampaign)
     }
   }
 
