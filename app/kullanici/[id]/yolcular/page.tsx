@@ -38,6 +38,10 @@ export default function YolcularPage() {
 
   // Form state - her yolcu için ayrı form
   const [formData, setFormData] = useState<{ [key: string]: any }>({})
+  // Kart bazlı geri bildirim durumları
+  const [cardSaving, setCardSaving] = useState<{ [key: string]: boolean }>({})
+  const [cardSuccess, setCardSuccess] = useState<{ [key: string]: string | null }>({})
+  const [cardError, setCardError] = useState<{ [key: string]: string | null }>({})
 
   useEffect(() => {
     fetchPassengers()
@@ -100,6 +104,58 @@ export default function YolcularPage() {
         [field]: value
       }
     }))
+  }
+
+  // Tek bir yolcuyu güncelle
+  const handleSaveOne = async (passengerId: string) => {
+    try {
+      setCardSaving(prev => ({ ...prev, [passengerId]: true }))
+      setCardError(prev => ({ ...prev, [passengerId]: null }))
+      setCardSuccess(prev => ({ ...prev, [passengerId]: null }))
+
+      const original = passengers.find(p => p.id === passengerId)
+      const data = formData[passengerId]
+      if (!original || !data) {
+        setCardError(prev => ({ ...prev, [passengerId]: 'Veri bulunamadı' }))
+        return
+      }
+
+      // Değişiklik yoksa erken çık
+      const hasChange = (
+        data.firstName !== original.firstName ||
+        data.lastName !== original.lastName ||
+        data.phone !== original.phone ||
+        data.countryCode !== original.countryCode ||
+        (data.identityNumber || '') !== (original.identityNumber || '') ||
+        (data.birthDay || '') !== (original.birthDay || '') ||
+        (data.birthMonth || '') !== (original.birthMonth || '') ||
+        (data.birthYear || '') !== (original.birthYear || '') ||
+        (data.gender || '') !== (original.gender || '') ||
+        Boolean(data.isForeigner) !== Boolean(original.isForeigner)
+      )
+
+      if (!hasChange) {
+        setCardSuccess(prev => ({ ...prev, [passengerId]: 'Değişiklik yok' }))
+        return
+      }
+
+      const res = await fetch(`/api/passengers/${passengerId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      const result = await res.json()
+      if (result.success) {
+        setCardSuccess(prev => ({ ...prev, [passengerId]: 'Kaydedildi' }))
+        await fetchPassengers()
+      } else {
+        setCardError(prev => ({ ...prev, [passengerId]: result.error || 'Güncellenemedi' }))
+      }
+    } catch (e) {
+      setCardError(prev => ({ ...prev, [passengerId]: 'Hata oluştu' }))
+    } finally {
+      setCardSaving(prev => ({ ...prev, [passengerId]: false }))
+    }
   }
 
   const handleSave = async () => {
@@ -273,6 +329,18 @@ export default function YolcularPage() {
 
                     {/* Yolcu Form */}
                     <div className="space-y-3">
+                    {/* Kart içi bildirim */}
+                    {cardError[passenger.id] && (
+                      <div className="p-2 bg-red-50 border border-red-200 rounded text-xs text-red-600">
+                        {cardError[passenger.id]}
+                      </div>
+                    )}
+                    {cardSuccess[passenger.id] && (
+                      <div className="p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
+                        {cardSuccess[passenger.id]}
+                      </div>
+                    )}
+
                       {/* Ad Soyad */}
                       <div className="grid grid-cols-2 gap-2">
                         <input 
@@ -357,6 +425,20 @@ export default function YolcularPage() {
                           <option value="female">Kadın</option>
                         </select>
                       </div>
+                      {/* Kart altı Kaydet */}
+                      <div className="pt-2 flex justify-end">
+                        <button
+                          onClick={() => handleSaveOne(passenger.id)}
+                          disabled={cardSaving[passenger.id]}
+                          className={`px-3 py-1.5 text-xs rounded-md ${
+                            cardSaving[passenger.id]
+                              ? 'bg-gray-400 text-white cursor-not-allowed'
+                              : 'bg-blue-600 text-white hover:bg-blue-700'
+                          }`}
+                        >
+                          {cardSaving[passenger.id] ? 'Kaydediliyor...' : 'Kaydet'}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -376,25 +458,13 @@ export default function YolcularPage() {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
+            <div className="flex items-center justify-end space-x-3 p-6 border-top border-gray-200">
               <button 
                 onClick={() => router.push(`/kullanici/${params.id}`)}
                 className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
               >
                 <ArrowLeft className="h-4 w-4" />
                 <span>Geri Dön</span>
-              </button>
-              <button 
-                onClick={handleSave}
-                disabled={saving}
-                className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-md ${
-                  saving 
-                    ? 'bg-gray-400 text-white cursor-not-allowed' 
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
-              >
-                <Save className="h-4 w-4" />
-                <span>{saving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}</span>
               </button>
             </div>
           </div>
