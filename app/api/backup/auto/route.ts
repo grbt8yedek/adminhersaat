@@ -213,7 +213,7 @@ async function createDatabaseBackup() {
       users: backup.tables.users.length,
       reservations: backup.tables.reservations.length,
       payments: backup.tables.payments.length,
-      campaigns: backup.tables.campaigns.length
+      passengers: backup.tables.passengers.length
     }
     
     console.log(`✅ Database yedeklendi: ${stats.total_tables} tablo, ${stats.total_records} kayıt`)
