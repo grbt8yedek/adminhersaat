@@ -201,8 +201,7 @@ async function createDatabaseBackup() {
         // Diğer tablolar
         priceAlerts: await prisma.priceAlert.findMany(),
         searchFavorites: await prisma.searchFavorite.findMany(),
-        surveyResponses: await prisma.surveyResponse.findMany(),
-        addresses: await prisma.address.findMany()
+        surveyResponses: await prisma.surveyResponse.findMany()
       }
     }
     
