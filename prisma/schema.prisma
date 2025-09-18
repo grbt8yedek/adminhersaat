@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,45 +7,42 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Ana sitenin User modeli
 model User {
-  id            String    @id @default(cuid())
-  firstName     String
-  lastName      String
-  email         String    @unique
-  password      String
-  countryCode   String?
-  phone         String?
-  birthDay      String?
-  birthMonth    String?
-  birthYear     String?
-  gender        String?
-  identityNumber String?
-  address       String?   // Adres bilgisi eklendi
-  city          String?   // Şehir bilgisi eklendi
-  isForeigner   Boolean   @default(false)
-  emailVerified DateTime?
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  lastLoginAt   DateTime?
-  status        String    @default("active")
-  role          String    @default("user") // "admin" veya "user"
-  canDelete     Boolean   @default(true)
-
-  // İlişkiler
-  accounts      Account[]
-  sessions      Session[]
-  reservations  Reservation[]
-  payments      Payment[]
-  passengers    Passenger[]
-  priceAlerts   PriceAlert[]
+  id              String           @id @default(cuid())
+  firstName       String
+  lastName        String
+  email           String           @unique
+  password        String
+  countryCode     String?
+  phone           String?
+  birthDay        String?
+  birthMonth      String?
+  birthYear       String?
+  gender          String?
+  identityNumber  String?
+  isForeigner     Boolean          @default(false)
+  emailVerified   DateTime?
+  image           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  lastLoginAt     DateTime?
+  status          String           @default("active")
+  role            String           @default("user")
+  canDelete       Boolean          @default(true)
+  address         String?
+  city            String?
+  accounts        Account[]
+  billingInfos    BillingInfo[]
+  campaigns       Campaign[]
+  emailTemplates  EmailTemplate[]
+  passengers      Passenger[]
+  payments        Payment[]
+  priceAlerts     PriceAlert[]
+  reservations    Reservation[]
   searchFavorites SearchFavorite[]
+  sessions        Session[]
   surveyResponses SurveyResponse[]
-  systemLogs    SystemLog[]
-  campaigns     Campaign[]
-  emailTemplates EmailTemplate[]
-  billingInfos  BillingInfo[]
+  systemLogs      SystemLog[]
 }
 
 model Account {
@@ -64,8 +58,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -89,8 +82,8 @@ model VerificationToken {
 model Reservation {
   id                  String    @id @default(cuid())
   userId              String
-  type                String    // flight, hotel, car, esim
-  status              String    // pending, confirmed, cancelled
+  type                String
+  status              String
   amount              Float
   currency            String
   biletDukkaniOrderId String?
@@ -106,9 +99,8 @@ model Reservation {
   airline             String?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
-  
-  user                User      @relation(fields: [userId], references: [id])
   payment             Payment?
+  user                User      @relation(fields: [userId], references: [id])
 }
 
 model Payment {
@@ -117,58 +109,53 @@ model Payment {
   userId        String
   amount        Float
   currency      String
-  status        String      // pending, completed, failed
-  provider      String      // stripe, paypal, etc.
+  status        String
+  provider      String
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
-
-  user          User        @relation(fields: [userId], references: [id])
   reservation   Reservation @relation(fields: [reservationId], references: [id])
+  user          User        @relation(fields: [userId], references: [id])
 }
 
-// Yolcular
 model Passenger {
-  id              String    @id @default(cuid())
-  userId          String
-  firstName       String
-  lastName        String
-  identityNumber  String?
-  isForeigner     Boolean   @default(false)
-  birthDay        String
-  birthMonth      String
-  birthYear       String
-  gender          String
-  countryCode     String?
-  phone           String?
-  hasMilCard      Boolean   @default(false)
-  hasPassport     Boolean   @default(false)
-  passportNumber  String?
-  passportExpiry  DateTime?
-  milCardNumber   String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  status          String    @default("active")
-  isAccountOwner  Boolean   @default(false)
-
-  user            User      @relation(fields: [userId], references: [id])
+  id             String    @id @default(cuid())
+  userId         String
+  firstName      String
+  lastName       String
+  identityNumber String?
+  isForeigner    Boolean   @default(false)
+  birthDay       String
+  birthMonth     String
+  birthYear      String
+  gender         String
+  countryCode    String?
+  phone          String?
+  hasMilCard     Boolean   @default(false)
+  hasPassport    Boolean   @default(false)
+  passportNumber String?
+  passportExpiry DateTime?
+  milCardNumber  String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  status         String    @default("active")
+  isAccountOwner Boolean   @default(false)
+  user           User      @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
 
-// Fiyat Alarmları
 model PriceAlert {
-  id            String   @id @default(cuid())
-  userId        String
-  origin        String
-  destination   String
-  departureDate DateTime
-  targetPrice   Float?
+  id                String   @id @default(cuid())
+  userId            String
+  origin            String
+  destination       String
+  departureDate     DateTime
+  targetPrice       Float?
+  createdAt         DateTime @default(now())
   lastNotifiedPrice Float?
-  createdAt     DateTime @default(now())
-  user          User     @relation(fields: [userId], references: [id])
+  user              User     @relation(fields: [userId], references: [id])
 }
 
-// Favori Aramalar
 model SearchFavorite {
   id            String   @id @default(cuid())
   userId        String
@@ -179,190 +166,157 @@ model SearchFavorite {
   user          User     @relation(fields: [userId], references: [id])
 }
 
-// Sistem Ayarları ve Bakım Modu
 model SystemSettings {
-  id                String   @id @default(cuid())
-  maintenanceMode   Boolean  @default(false)
+  id                String    @id @default(cuid())
+  maintenanceMode   Boolean   @default(false)
   maintenanceReason String?
   maintenanceStart  DateTime?
   estimatedDuration String?
-  
-  // Yedekleme ayarları
-  backupEnabled     Boolean  @default(false)
-  backupSchedule    String   @default("0 2 * * *")
-  backupRetention   Int      @default(7)
-  backupDatabase    Boolean  @default(true)
-  backupUploads     Boolean  @default(true)
-  backupLogs        Boolean  @default(true)
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  backupEnabled     Boolean   @default(false)
+  backupSchedule    String    @default("0 2 * * *")
+  backupRetention   Int       @default(7)
+  backupDatabase    Boolean   @default(true)
+  backupUploads     Boolean   @default(true)
+  backupLogs        Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
-// Kampanyalar
 model Campaign {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
   description String?
-  imageUrl    String?  // Görsel URL'i - Opsiyonel
-  imageData   String?  // Base64 image data - Neon database'de sakla
-  altText     String   // Alt text
-  linkUrl     String?  // Tıklanınca gidilecek URL
-  status      String   @default("active") // active, inactive
-  position    Int      @default(0) // Sıralama
-  clickCount  Int      @default(0) // Tıklanma sayısı
-  viewCount   Int      @default(0) // Görüntülenme sayısı
+  imageUrl    String?
+  imageData   String?
+  altText     String
+  linkUrl     String?
+  status      String    @default("active")
+  position    Int       @default(0)
+  clickCount  Int       @default(0)
+  viewCount   Int       @default(0)
   startDate   DateTime?
   endDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdBy   String?
+  user        User?     @relation(fields: [createdBy], references: [id])
+}
+
+model SurveyResponse {
+  id          String   @id @default(cuid())
+  userId      String
+  answers     String
+  completedAt DateTime
+  userAgent   String?
+  ipAddress   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  createdBy   String?  // Admin kullanıcı ID'si
-  
-  // İlişkiler
-  user User? @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  user        User     @relation(fields: [userId], references: [id])
 }
 
-// Anket Yanıtları
-model SurveyResponse {
-  id           String   @id @default(cuid())
-  userId       String   // Kullanıcı ID'si eklendi
-  answers      String   // JSON string olarak saklanacak
-  completedAt  DateTime
-  userAgent    String?
-  ipAddress    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  user         User     @relation(fields: [userId], references: [id])
-}
-
-// Sistem Logları
 model SystemLog {
   id        String   @id @default(cuid())
-  level     String   // INFO, WARNING, ERROR, DEBUG
+  level     String
   message   String
-  source    String   // system, auth, database, api, etc.
-  userId    String?  // İsteğe bağlı kullanıcı ID'si
-  metadata  String?  // JSON string olarak ek bilgiler
+  source    String
+  userId    String?
+  metadata  String?
   timestamp DateTime @default(now())
-  
-  // İlişkiler
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user      User?    @relation(fields: [userId], references: [id])
 }
 
-// Email Template'leri
 model EmailTemplate {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   name        String
   subject     String
-  content     String   // HTML content
-  type        String   // transactional, marketing, notification
-  language    String   @default("tr")
-  variables   String?  // JSON string olarak template değişkenleri
-  status      String   @default("active") // active, inactive
-  usageCount  Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  createdBy   String?  // Admin kullanıcı ID'si
-  
-  // İlişkiler
-  user User? @relation(fields: [createdBy], references: [id], onDelete: SetNull)
-  emails EmailLog[]
+  content     String
+  type        String
+  language    String       @default("tr")
+  variables   String?
+  status      String       @default("active")
+  usageCount  Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  createdBy   String?
+  emails      EmailLog[]
   queueEmails EmailQueue[]
+  user        User?        @relation(fields: [createdBy], references: [id])
 }
 
-// Email Kuyruğu
 model EmailQueue {
-  id          String   @id @default(cuid())
-  recipient   String
-  cc          String?
-  bcc         String?
-  subject     String
-  content     String
-  templateId  String?
-  priority    String   @default("normal") // low, normal, high
-  status      String   @default("pending") // pending, sent, failed, cancelled
-  scheduledAt DateTime?
-  sentAt      DateTime?
+  id           String         @id @default(cuid())
+  recipient    String
+  cc           String?
+  bcc          String?
+  subject      String
+  content      String
+  templateId   String?
+  priority     String         @default("normal")
+  status       String         @default("pending")
+  scheduledAt  DateTime?
+  sentAt       DateTime?
   errorMessage String?
-  retryCount  Int      @default(0)
+  retryCount   Int            @default(0)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  template     EmailTemplate? @relation(fields: [templateId], references: [id])
+}
+
+model EmailLog {
+  id           String         @id @default(cuid())
+  recipient    String
+  cc           String?
+  bcc          String?
+  subject      String
+  content      String
+  templateId   String?
+  status       String
+  sentAt       DateTime       @default(now())
+  deliveredAt  DateTime?
+  openedAt     DateTime?
+  clickedAt    DateTime?
+  bouncedAt    DateTime?
+  errorMessage String?
+  ipAddress    String?
+  userAgent    String?
+  trackingId   String?
+  template     EmailTemplate? @relation(fields: [templateId], references: [id])
+}
+
+model EmailSettings {
+  id           String   @id @default(cuid())
+  smtpHost     String
+  smtpPort     Int      @default(587)
+  smtpUser     String
+  smtpPassword String
+  fromEmail    String
+  fromName     String
+  dailyLimit   Int      @default(1000)
+  rateLimit    Int      @default(100)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model BillingInfo {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String
+  title       String
+  firstName   String?
+  lastName    String?
+  companyName String?
+  taxOffice   String?
+  taxNumber   String?
+  address     String
+  district    String?
+  city        String
+  country     String   @default("Türkiye")
+  isDefault   Boolean  @default(false)
+  isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
-  // İlişkiler
-  template EmailTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
-}
-
-// Email Logları
-model EmailLog {
-  id          String   @id @default(cuid())
-  recipient   String
-  cc          String?
-  bcc         String?
-  subject     String
-  content     String
-  templateId  String?
-  status      String   // sent, delivered, opened, clicked, bounced, failed
-  sentAt      DateTime @default(now())
-  deliveredAt DateTime?
-  openedAt    DateTime?
-  clickedAt   DateTime?
-  bouncedAt   DateTime?
-  errorMessage String?
-  ipAddress   String?
-  userAgent   String?
-  trackingId  String?  // Unique tracking ID for analytics
-  
-  // İlişkiler
-  template EmailTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
-}
-
-// Email Ayarları
-model EmailSettings {
-  id            String   @id @default(cuid())
-  smtpHost      String
-  smtpPort      Int      @default(587)
-  smtpUser      String
-  smtpPassword  String
-  fromEmail     String
-  fromName      String
-  dailyLimit    Int      @default(1000)
-  rateLimit     Int      @default(100) // per minute
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-// Fatura Bilgileri
-model BillingInfo {
-  id              String   @id @default(cuid())
-  userId          String
-  type            String   // "individual" veya "corporate"
-  title           String   // "Ev Adresi", "İş Adresi" vs.
-
-  // Bireysel bilgiler
-  firstName       String?
-  lastName        String?
-
-  // Kurumsal bilgiler
-  companyName     String?
-  taxOffice       String?  // Vergi Dairesi
-  taxNumber       String?  // Vergi Numarası
-
-  // Adres bilgileri
-  address         String
-  district        String?  // İlçe
-  city            String
-  country         String   @default("Türkiye")
-
-  // Durum
-  isDefault       Boolean  @default(false)
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // İlişki
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
-
