@@ -342,7 +342,6 @@ model BillingInfo {
   // Bireysel bilgiler
   firstName       String?
   lastName        String?
-  identityNumber  String?
 
   // Kurumsal bilgiler
   companyName     String?
@@ -353,7 +352,6 @@ model BillingInfo {
   address         String
   district        String?  // İlçe
   city            String
-  postalCode      String?
   country         String   @default("Türkiye")
 
   // Durum

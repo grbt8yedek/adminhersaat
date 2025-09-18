@@ -49,14 +49,12 @@ export async function POST(request: NextRequest) {
       title,
       firstName,
       lastName,
-      identityNumber,
       companyName,
       taxOffice,
       taxNumber,
       address,
       district,
       city,
-      postalCode,
       country = 'Türkiye',
       isDefault = false
     } = body
@@ -84,14 +82,12 @@ export async function POST(request: NextRequest) {
         title,
         firstName,
         lastName,
-        identityNumber,
         companyName,
         taxOffice,
         taxNumber,
         address,
         district,
         city,
-        postalCode,
         country,
         isDefault
       }

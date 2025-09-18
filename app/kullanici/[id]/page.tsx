@@ -517,7 +517,6 @@ export default function KullaniciDetayPage() {
                               ) : (
                                 <div className="text-xs text-gray-600 space-y-1">
                                   <p className="font-medium">{billing.firstName} {billing.lastName}</p>
-                                  {billing.identityNumber && <p>TC: {billing.identityNumber}</p>}
                                   <p>{billing.address}</p>
                                   <p>{billing.district && `${billing.district}, `}{billing.city}</p>
                                 </div>
