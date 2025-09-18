@@ -73,11 +73,49 @@ export async function POST(request: Request) {
 
     for (const recipient of recipients) {
       try {
+        // HTML formatında email içeriği oluştur
+        const htmlContent = `
+        <!DOCTYPE html>
+        <html lang="tr">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>${subject}</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; }
+            .container { max-width: 600px; margin: 0 auto; background: #ffffff; }
+            .header { background: #2563eb; color: white; padding: 20px; text-align: center; }
+            .content { padding: 30px; background: #f9fafb; }
+            .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; background: #f3f4f6; }
+            .unsubscribe { color: #666; text-decoration: none; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Gurbetbiz</h1>
+            </div>
+            <div class="content">
+              ${content.replace(/\n/g, '<br>')}
+            </div>
+            <div class="footer">
+              <p>© 2024 Gurbetbiz. Tüm hakları saklıdır.</p>
+              <p>Bu email size kayıtlı olduğunuz için gönderilmiştir.</p>
+              <p><a href="https://www.grbt8.store/unsubscribe" class="unsubscribe">E-posta listesinden çık</a></p>
+              <p>Gurbetbiz | İstanbul, Türkiye | destek@grbt8.store</p>
+            </div>
+          </div>
+        </body>
+        </html>
+        `
+
         const result = await resendService.sendEmail({
           to: recipient,
           subject,
-          html: content,
+          html: htmlContent,
+          text: content, // Plain text versiyonu da ekle
           from: 'Gurbetbiz <noreply@grbt8.store>',
+          replyTo: 'destek@grbt8.store', // Reply-To adresi ekle
           cc: cc ? [cc] : undefined,
           bcc: bcc ? [bcc] : undefined
         })
