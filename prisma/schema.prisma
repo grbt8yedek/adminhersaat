@@ -48,6 +48,7 @@ model User {
   systemLogs    SystemLog[]
   campaigns     Campaign[]
   emailTemplates EmailTemplate[]
+  billingInfos  BillingInfo[]
 }
 
 model Account {
@@ -329,5 +330,41 @@ model EmailSettings {
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+// Fatura Bilgileri
+model BillingInfo {
+  id              String   @id @default(cuid())
+  userId          String
+  type            String   // "individual" veya "corporate"
+  title           String   // "Ev Adresi", "İş Adresi" vs.
+
+  // Bireysel bilgiler
+  firstName       String?
+  lastName        String?
+  identityNumber  String?
+
+  // Kurumsal bilgiler
+  companyName     String?
+  taxOffice       String?  // Vergi Dairesi
+  taxNumber       String?  // Vergi Numarası
+
+  // Adres bilgileri
+  address         String
+  district        String?  // İlçe
+  city            String
+  postalCode      String?
+  country         String   @default("Türkiye")
+
+  // Durum
+  isDefault       Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // İlişki
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
