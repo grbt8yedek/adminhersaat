@@ -108,36 +108,49 @@ export default function YolcularPage() {
       setError(null)
       setSuccess(null)
 
-      // Her yolcu için ayrı ayrı güncelleme yap
-      const updatePromises = passengers.map(passenger => {
-        const passengerData = formData[passenger.id]
-        if (!passengerData) return Promise.resolve(null)
+      // Yalnızca değişen yolcuları tespit et
+      const changedPassengers = passengers.filter((passenger) => {
+        const data = formData[passenger.id]
+        if (!data) return false
+        return (
+          data.firstName !== passenger.firstName ||
+          data.lastName !== passenger.lastName ||
+          data.phone !== passenger.phone ||
+          data.countryCode !== passenger.countryCode ||
+          (data.identityNumber || '') !== (passenger.identityNumber || '') ||
+          (data.birthDay || '') !== (passenger.birthDay || '') ||
+          (data.birthMonth || '') !== (passenger.birthMonth || '') ||
+          (data.birthYear || '') !== (passenger.birthYear || '') ||
+          (data.gender || '') !== (passenger.gender || '') ||
+          Boolean(data.isForeigner) !== Boolean(passenger.isForeigner)
+        )
+      })
 
+      if (changedPassengers.length === 0) {
+        setSuccess('Değişiklik yok')
+        return
+      }
+
+      // Sadece değişenleri güncelle
+      const updatePromises = changedPassengers.map((passenger) => {
+        const passengerData = formData[passenger.id]
         return fetch(`/api/passengers/${passenger.id}`, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(passengerData)
         })
       })
 
       const responses = await Promise.all(updatePromises)
-      const results = await Promise.all(
-        responses
-          .filter(r => r !== null)
-          .map(r => r!.json())
-      )
+      const results = await Promise.all(responses.map((r) => r.json()))
 
-      // Başarılı güncellemeleri say
-      const successCount = results.filter(r => r.success).length
-      
-      if (successCount === passengers.length) {
-        setSuccess(`${successCount} yolcu başarıyla güncellendi!`)
-        // Yolcu verilerini yenile
+      const successCount = results.filter((r) => r.success).length
+
+      if (successCount === changedPassengers.length) {
+        setSuccess(`${successCount} yolcu güncellendi`)
         await fetchPassengers()
       } else {
-        setError(`${successCount}/${passengers.length} yolcu güncellendi`)
+        setError(`${successCount}/${changedPassengers.length} yolcu güncellendi`)
       }
     } catch (err) {
       setError('Güncelleme sırasında hata oluştu')
