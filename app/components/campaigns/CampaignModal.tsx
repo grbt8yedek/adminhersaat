@@ -119,6 +119,7 @@ export default function CampaignModal({ isOpen, onClose, campaign, onSave }: Cam
 
     setIsLoading(true)
     try {
+      console.log('🚀 Kampanya kaydediliyor:', formData)
       const response = await fetch('/api/campaigns', {
         method: campaign ? 'PUT' : 'POST',
         headers: {
@@ -128,12 +129,14 @@ export default function CampaignModal({ isOpen, onClose, campaign, onSave }: Cam
       })
 
       const data = await response.json()
+      console.log('📡 API Response:', { status: response.status, data })
       
       if (response.ok && data.success) {
+        console.log('✅ Kampanya başarıyla kaydedildi')
         onSave(data.data)
-        onClose()
+        // onClose() - CampaignsTab'da hallediliyor
       } else {
-        console.error('API Error:', data)
+        console.error('❌ API Error:', data)
         alert(data.error || 'Kampanya kaydetme hatası')
       }
     } catch (error) {
