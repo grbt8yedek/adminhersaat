@@ -26,14 +26,29 @@ export default function CampaignsTab() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [lastFetch, setLastFetch] = useState<number | null>(null)
+  
+  // Cache duration: 2 dakika
+  const CACHE_DURATION = 2 * 60 * 1000
 
-  // Kampanyaları yükle
-  const fetchCampaigns = async () => {
+  // Kampanyaları yükle - Cache ile
+  const fetchCampaigns = async (forceRefresh = false) => {
+    const now = Date.now()
+    
+    // Cache kontrolü - force refresh yoksa ve cache fresh ise, yükleme
+    if (!forceRefresh && lastFetch && (now - lastFetch) < CACHE_DURATION) {
+      console.log('📦 Cache\'den kampanyalar kullanılıyor')
+      return
+    }
+
     try {
+      setLoading(campaigns.length === 0) // İlk yüklemede loading göster
       const response = await fetch('/api/campaigns')
       if (response.ok) {
         const data = await response.json()
         setCampaigns(data.data || [])
+        setLastFetch(now) // Cache timestamp güncelle
+        console.log('🔄 Kampanyalar API\'den yüklendi')
       } else {
         setError('Kampanyalar yüklenemedi')
       }
@@ -62,6 +77,10 @@ export default function CampaignsTab() {
         setCampaigns(prev => [...prev, { ...campaign, id: tempId }])
       }
 
+      // Modal'ı hemen kapat - kullanıcı hızlı feedback alsın
+      setIsModalOpen(false)
+      setSelectedCampaign(null)
+
       const response = await fetch('/api/campaigns', {
         method: campaign.id ? 'PUT' : 'POST',
         headers: {
@@ -76,14 +95,16 @@ export default function CampaignsTab() {
         if (!campaign.id) {
           setCampaigns(prev => prev.map(c => c.id.startsWith('temp-') ? result.data : c))
         }
+        // Success feedback - daha az rahatsız edici
+        console.log('✅ Kampanya başarıyla kaydedildi')
       } else {
         // Hata durumunda geri al
-        await fetchCampaigns()
+        await fetchCampaigns(true) // Force refresh
         alert('Kampanya kaydetme hatası')
       }
     } catch (error) {
       console.error('Save error:', error)
-      await fetchCampaigns() // Hata durumunda yenile
+      await fetchCampaigns(true) // Force refresh
       alert('Kampanya kaydetme hatası')
     }
   }
@@ -108,7 +129,7 @@ export default function CampaignsTab() {
       }
     } catch (error) {
       console.error('Delete error:', error)
-      await fetchCampaigns() // Hata durumunda yenile
+      await fetchCampaigns(true) // Force refresh
       alert('Kampanya silme hatası')
     }
   }
@@ -149,7 +170,7 @@ export default function CampaignsTab() {
           <div className="text-center text-red-600">
             <p>{error}</p>
             <button
-              onClick={fetchCampaigns}
+              onClick={() => fetchCampaigns(true)}
               className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
               Tekrar Dene

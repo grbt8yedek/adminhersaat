@@ -31,6 +31,9 @@ export async function GET() {
       data: campaigns
     })
 
+    // Cache headers - 1 dakika cache
+    response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=30')
+
     return corsMiddleware(response)
   } catch (error) {
     console.error('Kampanya listesi getirme hatası:', error)
