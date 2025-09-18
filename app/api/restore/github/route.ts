@@ -92,6 +92,7 @@ export async function POST(_request: NextRequest) {
           firstName: u.firstName || null,
           lastName: u.lastName || null,
           email: u.email,
+          password: u.password || '',
           phone: u.phone || null,
           countryCode: u.countryCode || null,
           birthDay: u.birthDay || null,
