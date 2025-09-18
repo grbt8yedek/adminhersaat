@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, Save, Eye, Globe, Twitter, Facebook, Instagram, Settings, Shield, Code, BarChart3, CheckCircle, AlertTriangle, XCircle } from 'lucide-react'
 import Sidebar from '../components/layout/Sidebar'
 import Header from '../components/layout/Header'
@@ -8,6 +8,7 @@ import Header from '../components/layout/Header'
 export default function SeoPage() {
   const [activeTab, setActiveTab] = useState('seo')
   const [currentTab, setCurrentTab] = useState('general')
+  const [loading, setLoading] = useState(true)
 
   // SEO Ayarları State
   const [seoSettings, setSeoSettings] = useState({
@@ -43,10 +44,47 @@ export default function SeoPage() {
     organizationFounded: '2024'
   })
 
-  const handleSave = () => {
-    // Burada API çağrısı yapılacak
-    console.log('SEO ayarları kaydediliyor:', seoSettings)
-    alert('SEO ayarları başarıyla kaydedildi!')
+  // SEO ayarlarını yükle
+  useEffect(() => {
+    const fetchSeoSettings = async () => {
+      try {
+        const response = await fetch('/api/seo')
+        const data = await response.json()
+        
+        if (response.ok && data.success) {
+          setSeoSettings(data.data)
+        }
+      } catch (error) {
+        console.error('SEO ayarları yükleme hatası:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSeoSettings()
+  }, [])
+
+  const handleSave = async () => {
+    try {
+      const response = await fetch('/api/seo', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(seoSettings)
+      })
+
+      const data = await response.json()
+      
+      if (response.ok && data.success) {
+        alert('SEO ayarları başarıyla kaydedildi!')
+      } else {
+        alert(data.error || 'SEO ayarları kaydetme hatası')
+      }
+    } catch (error) {
+      console.error('Save error:', error)
+      alert('SEO ayarları kaydetme hatası')
+    }
   }
 
   const handlePreview = () => {

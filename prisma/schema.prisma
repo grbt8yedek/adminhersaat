@@ -320,3 +320,42 @@ model BillingInfo {
 
   @@index([userId])
 }
+
+// SEO Ayarları
+model SeoSettings {
+  id                       String   @id @default(cuid())
+  
+  // Genel SEO
+  siteTitle                String
+  siteDescription          String
+  keywords                 String
+  canonicalUrl             String
+  
+  // Meta Tags
+  ogTitle                  String
+  ogDescription            String
+  ogImage                  String
+  twitterCard              String   @default("summary_large_image")
+  
+  // Sosyal Medya
+  facebookUrl              String?
+  twitterUrl               String?
+  instagramUrl             String?
+  
+  // Güvenlik
+  robotsIndex              Boolean  @default(true)
+  robotsFollow             Boolean  @default(true)
+  googleVerification       String?
+  yandexVerification       String?
+  
+  // Schema.org
+  organizationName         String
+  organizationDescription  String
+  organizationLogo         String
+  organizationUrl          String
+  organizationPhone        String?
+  organizationFounded      String?
+  
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+}
