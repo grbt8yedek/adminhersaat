@@ -29,12 +29,12 @@ export async function POST(request: NextRequest) {
       ))
     }
 
-    // Dosya boyutu kontrolü (20MB)
-    const maxSize = 20 * 1024 * 1024 // 20MB
+    // Dosya boyutu kontrolü (2MB) - Base64 encoding %33 artırır
+    const maxSize = 2 * 1024 * 1024 // 2MB
     if (file.size > maxSize) {
       return corsMiddleware(NextResponse.json(
-        { success: false, error: 'Dosya boyutu 20MB\'dan büyük olamaz' },
-        { status: 400 }
+        { success: false, error: `Dosya boyutu ${(file.size / 1024 / 1024).toFixed(1)}MB. Maksimum 2MB olmalı.` },
+        { status: 413 } // Content Too Large
       ))
     }
 
