@@ -198,23 +198,11 @@ async function createDatabaseBackup() {
         payments: await prisma.payment.findMany(),
         passengers: await prisma.passenger.findMany(),
         
-        // Sistem tabloları
-        systemSettings: await prisma.systemSettings.findMany(),
-        systemLogs: await prisma.systemLog.findMany(),
-        
-        // Kampanya tabloları
-        campaigns: await prisma.campaign.findMany(),
-        
-        // Email tabloları
-        emailTemplates: await prisma.emailTemplate.findMany(),
-        emailQueue: await prisma.emailQueue.findMany(),
-        emailLogs: await prisma.emailLog.findMany(),
-        emailSettings: await prisma.emailSettings.findMany(),
-        
         // Diğer tablolar
         priceAlerts: await prisma.priceAlert.findMany(),
         searchFavorites: await prisma.searchFavorite.findMany(),
-        surveyResponses: await prisma.surveyResponse.findMany()
+        surveyResponses: await prisma.surveyResponse.findMany(),
+        addresses: await prisma.address.findMany()
       }
     }
     
