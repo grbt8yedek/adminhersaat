@@ -49,9 +49,19 @@ export default function CampaignsTab() {
     fetchCampaigns()
   }, [])
 
-  // Kampanya kaydetme
+  // Kampanya kaydetme - Optimistic Update
   const handleSaveCampaign = async (campaign: Campaign) => {
     try {
+      // Optimistic update - UI'yi hemen güncelle
+      if (campaign.id) {
+        // Güncelleme
+        setCampaigns(prev => prev.map(c => c.id === campaign.id ? campaign : c))
+      } else {
+        // Yeni ekleme - geçici ID ile
+        const tempId = `temp-${Date.now()}`
+        setCampaigns(prev => [...prev, { ...campaign, id: tempId }])
+      }
+
       const response = await fetch('/api/campaigns', {
         method: campaign.id ? 'PUT' : 'POST',
         headers: {
@@ -61,32 +71,44 @@ export default function CampaignsTab() {
       })
 
       if (response.ok) {
-        await fetchCampaigns() // Listeyi yenile
+        const result = await response.json()
+        // Gerçek veriyle güncelle
+        if (!campaign.id) {
+          setCampaigns(prev => prev.map(c => c.id.startsWith('temp-') ? result.data : c))
+        }
       } else {
+        // Hata durumunda geri al
+        await fetchCampaigns()
         alert('Kampanya kaydetme hatası')
       }
     } catch (error) {
       console.error('Save error:', error)
+      await fetchCampaigns() // Hata durumunda yenile
       alert('Kampanya kaydetme hatası')
     }
   }
 
-  // Kampanya silme
+  // Kampanya silme - Optimistic Update
   const handleDeleteCampaign = async (id: string) => {
     if (!confirm('Bu kampanyayı silmek istediğinizden emin misiniz?')) return
 
     try {
+      // Optimistic update - UI'den hemen kaldır
+      const originalCampaigns = campaigns
+      setCampaigns(prev => prev.filter(c => c.id !== id))
+
       const response = await fetch(`/api/campaigns/${id}`, {
         method: 'DELETE'
       })
 
-      if (response.ok) {
-        await fetchCampaigns() // Listeyi yenile
-      } else {
+      if (!response.ok) {
+        // Hata durumunda geri al
+        setCampaigns(originalCampaigns)
         alert('Kampanya silme hatası')
       }
     } catch (error) {
       console.error('Delete error:', error)
+      await fetchCampaigns() // Hata durumunda yenile
       alert('Kampanya silme hatası')
     }
   }
