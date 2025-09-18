@@ -42,11 +42,8 @@ export async function POST(request: NextRequest) {
         }
       });
       
-      return NextResponse.json({
-        success: true,
-        message: 'Kullanıcı güncellendi',
-        action: 'updated'
-      });
+      // Hoş geldiniz tetikleme (güncellemede atlama)
+      return NextResponse.json({ success: true, message: 'Kullanıcı güncellendi', action: 'updated' });
     } else {
       // Kullanıcı yoksa oluştur
       await prisma.user.create({
@@ -75,11 +72,16 @@ export async function POST(request: NextRequest) {
         }
       });
       
-      return NextResponse.json({
-        success: true,
-        message: 'Kullanıcı oluşturuldu',
-        action: 'created'
-      });
+      // Hoş geldiniz email tetikle
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_ADMIN_API_URL || ''}/api/email/trigger`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'welcome', email: user.email, name: `${user.firstName || ''} ${user.lastName || ''}`.trim() })
+        });
+      } catch {}
+
+      return NextResponse.json({ success: true, message: 'Kullanıcı oluşturuldu', action: 'created' });
     }
 
   } catch (error) {
