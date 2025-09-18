@@ -151,7 +151,6 @@ model Passenger {
 
   user            User      @relation(fields: [userId], references: [id])
 
-  @@unique([userId, identityNumber])
   @@index([userId])
 }
 
