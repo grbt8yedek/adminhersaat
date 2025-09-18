@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Sidebar from '../../components/layout/Sidebar'
 import Header from '../../components/layout/Header'
-import { User, Calendar, Clock, Edit, Save, CreditCard, X, Mail, Phone, MapPin } from 'lucide-react'
+import { User, Calendar, Clock, Edit, Save, CreditCard, X, Mail, Phone, MapPin, ChevronDown, ChevronUp, Home, Building } from 'lucide-react'
 
 interface User {
   id: string
@@ -44,6 +44,9 @@ export default function KullaniciDetayPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [surveyResponse, setSurveyResponse] = useState<any[]>([])
+  const [showAddresses, setShowAddresses] = useState(false)
+  const [billingInfos, setBillingInfos] = useState<any[]>([])
+  const [loadingAddresses, setLoadingAddresses] = useState(false)
 
   // Form state
   const [formData, setFormData] = useState({
@@ -66,6 +69,35 @@ export default function KullaniciDetayPage() {
     fetchUser()
     fetchSurveyResponse()
   }, [params.id])
+
+  const fetchBillingInfos = async () => {
+    if (!params.id) return
+    
+    try {
+      setLoadingAddresses(true)
+      const response = await fetch(`/api/billing-info?userId=${params.id}`)
+      const data = await response.json()
+      
+      if (data.success) {
+        setBillingInfos(data.data || [])
+      } else {
+        console.log('Fatura bilgileri bulunamadı')
+        setBillingInfos([])
+      }
+    } catch (error) {
+      console.error('Fatura bilgileri yüklenirken hata:', error)
+      setBillingInfos([])
+    } finally {
+      setLoadingAddresses(false)
+    }
+  }
+
+  const toggleAddresses = () => {
+    setShowAddresses(!showAddresses)
+    if (!showAddresses && billingInfos.length === 0) {
+      fetchBillingInfos()
+    }
+  }
 
   const fetchSurveyResponse = async () => {
     try {
@@ -428,6 +460,77 @@ export default function KullaniciDetayPage() {
                   <h3 className="text-xs font-medium text-gray-900 mb-2">İşlemler</h3>
                 </div>
               </div>
+            </div>
+
+            {/* Adres Bilgileri Bölümü */}
+            <div className="border-t border-gray-200">
+              <button
+                onClick={toggleAddresses}
+                className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50"
+              >
+                <div className="flex items-center space-x-2">
+                  <MapPin className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm font-medium text-gray-900">Fatura Adresleri</span>
+                  <span className="text-xs text-gray-500">({billingInfos.length} adres)</span>
+                </div>
+                {showAddresses ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </button>
+              
+              {showAddresses && (
+                <div className="px-4 pb-4">
+                  {loadingAddresses ? (
+                    <div className="text-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+                      <p className="mt-2 text-xs text-gray-500">Adresler yükleniyor...</p>
+                    </div>
+                  ) : billingInfos.length === 0 ? (
+                    <div className="text-center py-4">
+                      <Home className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                      <p className="text-sm text-gray-500">Henüz fatura adresi eklenmemiş</p>
+                      <p className="text-xs text-gray-400">Kullanıcı ana sitede adres ekleyebilir</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {billingInfos.map((billing, index) => (
+                        <div key={billing.id} className="bg-gray-50 rounded-lg p-3 border">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-1">
+                                {billing.type === 'corporate' ? (
+                                  <Building className="h-4 w-4 text-blue-500" />
+                                ) : (
+                                  <Home className="h-4 w-4 text-green-500" />
+                                )}
+                                <span className="text-sm font-medium text-gray-900">{billing.title}</span>
+                                {billing.isDefault && (
+                                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Varsayılan</span>
+                                )}
+                              </div>
+                              
+                              {billing.type === 'corporate' ? (
+                                <div className="text-xs text-gray-600 space-y-1">
+                                  <p className="font-medium">{billing.companyName}</p>
+                                  <p>VD: {billing.taxOffice} - VN: {billing.taxNumber}</p>
+                                  <p>{billing.address}</p>
+                                  <p>{billing.district && `${billing.district}, `}{billing.city}</p>
+                                </div>
+                              ) : (
+                                <div className="text-xs text-gray-600 space-y-1">
+                                  <p className="font-medium">{billing.firstName} {billing.lastName}</p>
+                                  {billing.identityNumber && <p>TC: {billing.identityNumber}</p>}
+                                  <p>{billing.address}</p>
+                                  <p>{billing.district && `${billing.district}, `}{billing.city}</p>
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-xs text-gray-400">{new Date(billing.createdAt).toLocaleDateString('tr-TR')}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Modal Footer */}
