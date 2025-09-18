@@ -77,7 +77,7 @@ export async function POST(request: Request) {
           to: recipient,
           subject,
           html: content,
-          from: process.env.RESEND_FROM || undefined,
+          from: 'GRBT8 <noreply@grbt8.store>',
           cc: cc ? [cc] : undefined,
           bcc: bcc ? [bcc] : undefined
         })
