@@ -124,6 +124,54 @@ export class ResendEmailService {
             <a href="https://anasite.grbt8.store/giris" class="button">Hesabıma git</a>
           </div>
         </div>
+        
+        <!-- Mobil Uygulama Tanıtımı -->
+        <div style="background: linear-gradient(135deg, #4ade80, #22c55e); padding: 40px 20px; text-align: center;">
+          <div style="color: white; font-size: 28px; font-weight: bold; margin-bottom: 10px;">
+            <span style="color: white;">gurbet</span><span style="color: #1f2937;">biz</span>
+          </div>
+          <div style="color: white; font-size: 24px; font-weight: 600; margin-bottom: 15px;">
+            Mobil Uygulama
+          </div>
+          <div style="color: white; font-size: 18px; margin-bottom: 30px; line-height: 1.5;">
+            Avrupa'dan Türkiye'ye<br>yol arkadaşınız.
+          </div>
+          
+          <!-- Mobil telefon mockup -->
+          <div style="position: relative; display: inline-block; margin: 20px 0 30px 0;">
+            <div style="width: 200px; height: 400px; background: #1f2937; border-radius: 25px; border: 8px solid #000; position: relative; margin: 0 auto;">
+              <!-- Telefon ekranı -->
+              <div style="width: 184px; height: 384px; background: linear-gradient(135deg, #4ade80, #22c55e); border-radius: 17px; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                <div style="color: white; font-size: 24px; font-weight: bold; margin-bottom: 10px;">
+                  <span style="color: white;">gurbet</span><span style="color: #1f2937;">biz</span>
+                </div>
+                <!-- Hemen İndir butonu telefon içinde -->
+                <div style="position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);">
+                  <div style="background: transparent; border: 2px solid white; color: white; padding: 12px 24px; border-radius: 25px; font-size: 16px; font-weight: 600;">
+                    Hemen İndir
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- App Store butonları -->
+          <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 20px;">
+            <a href="#" style="display: inline-block;">
+              <div style="background: #000; color: white; padding: 10px 20px; border-radius: 8px; font-size: 12px; text-align: left; width: 140px;">
+                <div style="font-size: 10px; margin-bottom: 2px;">GET IT ON</div>
+                <div style="font-size: 16px; font-weight: bold;">Google Play</div>
+              </div>
+            </a>
+            <a href="#" style="display: inline-block;">
+              <div style="background: #000; color: white; padding: 10px 20px; border-radius: 8px; font-size: 12px; text-align: left; width: 140px;">
+                <div style="font-size: 10px; margin-bottom: 2px;">Download on the</div>
+                <div style="font-size: 16px; font-weight: bold;">App Store</div>
+              </div>
+            </a>
+          </div>
+        </div>
+        
         <div class="footer">
           <p>© 2024 Gurbetbiz. Tüm hakları saklıdır.</p>
           <p>Bu email otomatik olarak gönderilmiştir.</p>
