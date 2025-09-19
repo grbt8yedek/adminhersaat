@@ -36,6 +36,7 @@ model User {
   accounts         Account[]
   billingInfos     BillingInfo[]
   campaigns        Campaign[]
+  emailLogs        EmailLog[]
   emailTemplates   EmailTemplate[]
   passengers       Passenger[]
   payments         Payment[]
@@ -266,24 +267,55 @@ model EmailQueue {
 }
 
 model EmailLog {
-  id           String         @id @default(cuid())
-  cc           String?
-  bcc          String?
-  subject      String
-  content      String
-  templateId   String?
-  status       String
-  sentAt       DateTime       @default(now())
-  deliveredAt  DateTime?
-  openedAt     DateTime?
-  clickedAt    DateTime?
-  bouncedAt    DateTime?
-  errorMessage String?
-  ipAddress    String?
-  userAgent    String?
-  trackingId   String?
-  recipient    String
-  template     EmailTemplate? @relation(fields: [templateId], references: [id])
+  id                String         @id @default(cuid())
+  
+  // Email Bilgileri
+  emailId           String?        // Resend message ID
+  recipientEmail    String         // Eski: recipient
+  recipientName     String?
+  cc                String?
+  bcc               String?
+  subject           String
+  content           String?
+  templateId        String?
+  templateName      String?
+  
+  // Durum
+  status            String         // sent, delivered, bounced, failed, opened, clicked
+  sentAt            DateTime       @default(now())
+  deliveredAt       DateTime?
+  openedAt          DateTime?
+  clickedAt         DateTime?
+  bouncedAt         DateTime?
+  
+  // Hata Bilgileri
+  bounceReason      String?
+  errorMessage      String?
+  
+  // İlişkiler
+  campaignId        String?
+  userId            String?
+  user              User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  template          EmailTemplate? @relation(fields: [templateId], references: [id])
+  
+  // Teknik Bilgiler
+  ipAddress         String?
+  userAgent         String?
+  trackingId        String?
+  openCount         Int            @default(0)
+  clickCount        Int            @default(0)
+  bounceCount       Int            @default(0)
+  spamScore         Float?
+  deliveryTime      Int?           // milliseconds
+  retryCount        Int            @default(0)
+  
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  
+  @@index([recipientEmail])
+  @@index([status])
+  @@index([sentAt])
+  @@index([userId])
 }
 
 model EmailSettings {
@@ -320,4 +352,31 @@ model BillingInfo {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model SeoSettings {
+  id                    String   @id @default(cuid())
+  siteTitle             String
+  siteDescription       String
+  keywords              String
+  canonicalUrl          String
+  ogTitle               String?
+  ogDescription         String?
+  ogImage               String?
+  twitterCard           String?
+  facebookUrl           String?
+  twitterUrl            String?
+  instagramUrl          String?
+  robotsIndex           Boolean  @default(true)
+  robotsFollow          Boolean  @default(true)
+  googleVerification    String?
+  yandexVerification    String?
+  organizationName      String?
+  organizationDescription String?
+  organizationLogo      String?
+  organizationUrl       String?
+  organizationPhone     String?
+  organizationFounded   String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
