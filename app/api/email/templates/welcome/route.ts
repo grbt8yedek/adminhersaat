@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import resendService from '@/app/lib/resend'
+import { prisma } from '@/app/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,6 +16,25 @@ export async function POST(request: NextRequest) {
 
     // Hoşgeldin emaili gönder
     const result = await resendService.sendWelcomeEmail(email, name)
+
+    // Email log kaydet
+    try {
+      await prisma.emailLog.create({
+        data: {
+          emailId: result.messageId,
+          recipientEmail: email,
+          recipientName: name,
+          subject: `🎉 Hoşgeldiniz ${name} - Gurbetbiz Hesabınız Aktif!`,
+          templateName: 'Hoş Geldiniz Email\'i',
+          status: result.success ? 'sent' : 'failed',
+          errorMessage: result.error,
+          ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
+          userAgent: request.headers.get('user-agent') || 'unknown'
+        }
+      })
+    } catch (logError) {
+      console.error('Email log kaydedilemedi:', logError)
+    }
 
     if (result.success) {
       return NextResponse.json({

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import resendService from '@/app/lib/resend'
+import { prisma } from '@/app/lib/prisma'
 
 export async function POST(request: Request) {
   try {
@@ -82,27 +83,27 @@ export async function POST(request: Request) {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>${subject}</title>
           <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; }
-            .container { max-width: 600px; margin: 0 auto; background: #ffffff; }
-            .header { background: #2563eb; color: white; padding: 20px; text-align: center; }
-            .content { padding: 30px; background: #f9fafb; }
-            .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; background: #f3f4f6; }
-            .unsubscribe { color: #666; text-decoration: none; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f5; }
+            .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; }
+            .header { background: linear-gradient(135deg, #4ade80, #22c55e); color: white; padding: 20px; text-align: center; }
+            .logo { font-size: 28px; font-weight: bold; margin-bottom: 5px; letter-spacing: -1px; }
+            .logo .biz { color: #000000; }
+            .content { padding: 40px 30px; background: #ffffff; }
+            .footer { text-align: center; padding: 30px; color: #6b7280; font-size: 12px; background: #f8fafc; }
+            .unsubscribe { color: #4ade80; text-decoration: none; }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <h1>Gurbetbiz</h1>
+              <div class="logo">gurbet<span class="biz">biz</span></div>
             </div>
             <div class="content">
               ${content.replace(/\n/g, '<br>')}
             </div>
             <div class="footer">
               <p>© 2024 Gurbetbiz. Tüm hakları saklıdır.</p>
-              <p>Bu email size kayıtlı olduğunuz için gönderilmiştir.</p>
-              <p><a href="https://www.grbt8.store/unsubscribe" class="unsubscribe">E-posta listesinden çık</a></p>
-              <p>Gurbetbiz | İstanbul, Türkiye | destek@grbt8.store</p>
+              <p>Bu email otomatik olarak gönderilmiştir.</p>
             </div>
           </div>
         </body>
@@ -119,6 +120,29 @@ export async function POST(request: Request) {
           cc: cc ? [cc] : undefined,
           bcc: bcc ? [bcc] : undefined
         })
+
+        // Email log kaydet
+        try {
+          await prisma.emailLog.create({
+            data: {
+              emailId: result.messageId,
+              recipientEmail: recipient,
+              recipientName: recipient.split('@')[0], // Basit name extraction
+              cc,
+              bcc,
+              subject,
+              content: content.substring(0, 1000), // İlk 1000 karakter
+              templateName: 'Manuel Email',
+              status: result.success ? 'sent' : 'failed',
+              errorMessage: result.error,
+              ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
+              userAgent: request.headers.get('user-agent') || 'unknown'
+            }
+          })
+        } catch (logError) {
+          console.error('Email log kaydedilemedi:', logError)
+          // Log hatası email gönderimini etkilemez
+        }
 
         emailResults.push({
           recipient,

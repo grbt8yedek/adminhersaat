@@ -509,17 +509,17 @@ export default function KullaniciDetayPage() {
                               
                               {billing.type === 'corporate' ? (
                                 <div className="text-xs text-gray-600 space-y-1">
-                                  <p className="font-medium">{billing.companyName}</p>
-                                  <p>VD: {billing.taxOffice} - VN: {billing.taxNumber}</p>
-                                  <p>{billing.address}</p>
-                                  <p>{billing.district && `${billing.district}, `}{billing.city}</p>
-                                  <p className="text-gray-500">{billing.country}</p>
+                             <p className="font-medium">{billing.companyName}</p>
+                             <p>VN: {billing.taxNumber}</p>
+                             <p>{billing.address}</p>
+                             <p>{billing.city}</p>
+                             <p className="text-gray-500">{billing.country}</p>
                                 </div>
                               ) : (
                                 <div className="text-xs text-gray-600 space-y-1">
                                   <p className="font-medium">{billing.firstName} {billing.lastName}</p>
                                   <p>{billing.address}</p>
-                                  <p>{billing.district && `${billing.district}, `}{billing.city}</p>
+                                  <p>{billing.city}</p>
                                   <p className="text-gray-500">{billing.country}</p>
                                 </div>
                               )}

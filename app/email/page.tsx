@@ -629,23 +629,56 @@ export default function EmailPage() {
                   <div className="space-y-6">
                     <div className="flex justify-between items-center">
                       <h3 className="text-lg font-semibold text-gray-900">Email Logları</h3>
-                      <button
-                        onClick={() => {
-                          setLogsLoading(true)
-                          fetch('/api/email/logs')
-                            .then(res => res.json())
-                            .then(data => {
-                              if (data.success) {
-                                setEmailLogs(data.data.logs)
-                              }
-                              setLogsLoading(false)
-                            })
-                            .catch(() => setLogsLoading(false))
-                        }}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                      >
-                        Yenile
-                      </button>
+                      <div className="flex space-x-3">
+                        <button
+                          onClick={() => {
+                            setLogsLoading(true)
+                            fetch('/api/email/logs')
+                              .then(res => res.json())
+                              .then(data => {
+                                if (data.success) {
+                                  setEmailLogs(data.data.logs)
+                                }
+                                setLogsLoading(false)
+                              })
+                              .catch(() => setLogsLoading(false))
+                          }}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                        >
+                          Yenile
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm('90 günden eski email logları silinecek. Emin misiniz?')) {
+                              setLogsLoading(true)
+                              fetch('/api/system/cleanup-logs', { method: 'POST' })
+                                .then(res => res.json())
+                                .then(data => {
+                                  if (data.success) {
+                                    alert(data.message)
+                                    // Logları yenile
+                                    return fetch('/api/email/logs')
+                                  }
+                                  throw new Error(data.error)
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                  if (data.success) {
+                                    setEmailLogs(data.data.logs)
+                                  }
+                                  setLogsLoading(false)
+                                })
+                                .catch(error => {
+                                  alert('Temizleme hatası: ' + error.message)
+                                  setLogsLoading(false)
+                                })
+                            }
+                          }}
+                          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                        >
+                          Eski Logları Temizle
+                        </button>
+                      </div>
                     </div>
                     
                     {logsLoading ? (

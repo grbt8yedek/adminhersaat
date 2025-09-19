@@ -50,10 +50,8 @@ export async function POST(request: NextRequest) {
       firstName,
       lastName,
       companyName,
-      taxOffice,
       taxNumber,
       address,
-      district,
       city,
       country = 'Türkiye',
       isDefault = false
@@ -83,10 +81,8 @@ export async function POST(request: NextRequest) {
         firstName,
         lastName,
         companyName,
-        taxOffice,
         taxNumber,
         address,
-        district,
         city,
         country,
         isDefault

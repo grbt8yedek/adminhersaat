@@ -1,1 +1,4 @@
-{}
+{
+  "/api/billing-info/route": "app/api/billing-info/route.js",
+  "/api/users/route": "app/api/users/route.js"
+}

@@ -8,41 +8,43 @@ datasource db {
 }
 
 model User {
-  id              String           @id @default(cuid())
-  firstName       String
-  lastName        String
-  email           String           @unique
-  password        String
-  countryCode     String?
-  phone           String?
-  birthDay        String?
-  birthMonth      String?
-  birthYear       String?
-  gender          String?
-  identityNumber  String?
-  isForeigner     Boolean          @default(false)
-  emailVerified   DateTime?
-  image           String?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  lastLoginAt     DateTime?
-  status          String           @default("active")
-  role            String           @default("user")
-  canDelete       Boolean          @default(true)
-  address         String?
-  city            String?
-  accounts        Account[]
-  billingInfos    BillingInfo[]
-  campaigns       Campaign[]
-  emailTemplates  EmailTemplate[]
-  passengers      Passenger[]
-  payments        Payment[]
-  priceAlerts     PriceAlert[]
-  reservations    Reservation[]
-  searchFavorites SearchFavorite[]
-  sessions        Session[]
-  surveyResponses SurveyResponse[]
-  systemLogs      SystemLog[]
+  id               String           @id @default(cuid())
+  firstName        String
+  lastName         String
+  email            String           @unique
+  password         String
+  countryCode      String?
+  phone            String?
+  birthDay         String?
+  birthMonth       String?
+  birthYear        String?
+  gender           String?
+  identityNumber   String?
+  address          String?
+  city             String?
+  isForeigner      Boolean          @default(false)
+  emailVerified    DateTime?
+  image            String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  lastLoginAt      DateTime?
+  status           String           @default("active")
+  role             String           @default("user")
+  canDelete        Boolean          @default(true)
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  accounts         Account[]
+  billingInfos     BillingInfo[]
+  campaigns        Campaign[]
+  emailTemplates   EmailTemplate[]
+  passengers       Passenger[]
+  payments         Payment[]
+  priceAlerts      PriceAlert[]
+  reservations     Reservation[]
+  searchFavorites  SearchFavorite[]
+  sessions         Session[]
+  surveyResponses  SurveyResponse[]
+  systemLogs       SystemLog[]
 }
 
 model Account {
@@ -141,6 +143,7 @@ model Passenger {
   isAccountOwner Boolean   @default(false)
   user           User      @relation(fields: [userId], references: [id])
 
+  @@unique([userId, identityNumber])
   @@index([userId])
 }
 
@@ -264,7 +267,6 @@ model EmailQueue {
 
 model EmailLog {
   id           String         @id @default(cuid())
-  recipient    String
   cc           String?
   bcc          String?
   subject      String
@@ -280,6 +282,7 @@ model EmailLog {
   ipAddress    String?
   userAgent    String?
   trackingId   String?
+  recipient    String
   template     EmailTemplate? @relation(fields: [templateId], references: [id])
 }
 
@@ -306,12 +309,10 @@ model BillingInfo {
   firstName   String?
   lastName    String?
   companyName String?
-  taxOffice   String?
   taxNumber   String?
   address     String
-  district    String?
   city        String
-  country     String   @default("Türkiye")
+  country     String
   isDefault   Boolean  @default(false)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -319,43 +320,4 @@ model BillingInfo {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-}
-
-// SEO Ayarları
-model SeoSettings {
-  id                       String   @id @default(cuid())
-  
-  // Genel SEO
-  siteTitle                String
-  siteDescription          String
-  keywords                 String
-  canonicalUrl             String
-  
-  // Meta Tags
-  ogTitle                  String
-  ogDescription            String
-  ogImage                  String
-  twitterCard              String   @default("summary_large_image")
-  
-  // Sosyal Medya
-  facebookUrl              String?
-  twitterUrl               String?
-  instagramUrl             String?
-  
-  // Güvenlik
-  robotsIndex              Boolean  @default(true)
-  robotsFollow             Boolean  @default(true)
-  googleVerification       String?
-  yandexVerification       String?
-  
-  // Schema.org
-  organizationName         String
-  organizationDescription  String
-  organizationLogo         String
-  organizationUrl          String
-  organizationPhone        String?
-  organizationFounded      String?
-  
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
 }
