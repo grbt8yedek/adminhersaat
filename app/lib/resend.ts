@@ -127,7 +127,7 @@ export class ResendEmailService {
         
         <!-- Mobil Uygulama Tanıtımı -->
         <div style="text-align: center; padding: 20px;">
-          <img src="https://www.grbt8.store/images/Mobil app email.png" alt="Gurbetbiz Mobil Uygulama" style="max-width: 100%; height: auto; border-radius: 10px;" />
+          <img src="https://www.grbt8.store/images/Mobil%20app%20email.png" alt="Gurbetbiz Mobil Uygulama" style="max-width: 100%; height: auto; border-radius: 10px;" />
         </div>
         
         <div class="footer">
