@@ -101,9 +101,11 @@ export class ResendEmailService {
     <body>
       <div class="container">
         <div class="header">
-          <div class="logo">
-            <span class="gurbet">gurbet</span><span class="biz">biz</span>
-          </div>
+          <svg width="200" height="60" xmlns="http://www.w3.org/2000/svg">
+            <text x="10" y="40" font-family="Arial, sans-serif" font-size="36" font-weight="bold">
+              <tspan fill="white">gurbet</tspan><tspan fill="black">biz</tspan>
+            </text>
+          </svg>
         </div>
         <div class="content">
           <div class="greeting">Merhaba <strong>${userName}</strong>,</div>
