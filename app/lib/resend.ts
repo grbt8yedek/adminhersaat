@@ -11,7 +11,7 @@ export interface EmailOptions {
 
 export class ResendEmailService {
   private static instance: ResendEmailService
-  private defaultFrom: string = process.env.RESEND_FROM || 'noreply@grbt8.store'
+  private defaultFrom: string = process.env.RESEND_FROM || 'Gurbetbiz <noreply@grbt8.store>'
 
   private constructor() {}
 
@@ -77,7 +77,7 @@ export class ResendEmailService {
     <html>
     <head>
       <meta charset="utf-8">
-      <title>Hoşgeldiniz - GRBT8</title>
+      <title>Hoşgeldiniz - Gurbetbiz</title>
       <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -93,9 +93,9 @@ export class ResendEmailService {
           <h1>🎉 Hoşgeldiniz ${userName}!</h1>
         </div>
         <div class="content">
-          <h2>GRBT8'e Katıldığınız İçin Teşekkürler!</h2>
+          <h2>Gurbetbiz Hesabınız Aktif!</h2>
           <p>Merhaba <strong>${userName}</strong>,</p>
-          <p>GRBT8 ailesine hoşgeldiniz! Hesabınız başarıyla oluşturuldu ve artık tüm hizmetlerimizden faydalanabilirsiniz.</p>
+          <p>Gurbetbiz ailesine hoşgeldiniz! Hesabınız başarıyla oluşturuldu ve artık tüm hizmetlerimizden faydalanabilirsiniz.</p>
           
           <h3>✈️ Neler Yapabilirsiniz:</h3>
           <ul>
@@ -113,7 +113,7 @@ export class ResendEmailService {
           <p>İyi seyahatler dileriz! 🌟</p>
         </div>
         <div class="footer">
-          <p>© 2024 GRBT8. Tüm hakları saklıdır.</p>
+          <p>© 2024 Gurbetbiz. Tüm hakları saklıdır.</p>
           <p>Bu email otomatik olarak gönderilmiştir.</p>
         </div>
       </div>
@@ -123,7 +123,7 @@ export class ResendEmailService {
 
     return this.sendEmail({
       to: userEmail,
-      subject: `🎉 Hoşgeldiniz ${userName} - GRBT8'e Katıldınız!`,
+      subject: `🎉 Hoşgeldiniz ${userName} - Gurbetbiz Hesabınız Aktif!`,
       html
     })
   }
@@ -166,7 +166,7 @@ export class ResendEmailService {
           <p>İyi seyahatler dileriz! ✈️</p>
         </div>
         <div class="footer">
-          <p>© 2024 GRBT8. Tüm hakları saklıdır.</p>
+          <p>© 2024 Gurbetbiz. Tüm hakları saklıdır.</p>
           <p>Bu email otomatik olarak gönderilmiştir.</p>
         </div>
       </div>
@@ -219,7 +219,7 @@ export class ResendEmailService {
           <p>GRBT8 Ekibi</p>
         </div>
         <div class="footer">
-          <p>© 2024 GRBT8. Tüm hakları saklıdır.</p>
+          <p>© 2024 Gurbetbiz. Tüm hakları saklıdır.</p>
         </div>
       </div>
     </body>
