@@ -124,7 +124,8 @@ export class ResendEmailService {
     return this.sendEmail({
       to: userEmail,
       subject: `🎉 Hoşgeldiniz ${userName} - Gurbetbiz Hesabınız Aktif!`,
-      html
+      html,
+      from: 'Gurbetbiz <noreply@grbt8.store>'
     })
   }
 
