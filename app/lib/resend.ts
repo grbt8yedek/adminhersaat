@@ -93,7 +93,7 @@ export class ResendEmailService {
         .features-list { list-style: none; padding: 0; margin: 0; }
         .features-list li { padding: 8px 0; padding-left: 20px; position: relative; color: #4b5563; }
         .features-list li::before { content: '•'; color: #22c55e; font-weight: bold; position: absolute; left: 0; }
-        .button { display: inline-block; background: linear-gradient(135deg, #4ade80, #22c55e); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; margin: 30px 0; font-weight: 600; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); }
+        .button { display: inline-block; background: linear-gradient(135deg, #4ade80, #22c55e); color: white !important; padding: 15px 30px; text-decoration: none; border-radius: 25px; margin: 30px 0; font-weight: 600; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); }
         .button:hover { transform: translateY(-2px); }
         .footer { text-align: center; padding: 30px; color: #6b7280; font-size: 12px; background: #f3f4f6; }
       </style>
