@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const resetLink = `https://anasite.grbt8.store/reset-password?token=${resetToken || 'sample-token'}`
+    const resetLink = `https://anasite.grbt8.store/sifre-sifirla?token=${resetToken || 'sample-token'}`
 
     const html = `
     <!DOCTYPE html>
