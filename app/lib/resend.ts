@@ -79,26 +79,41 @@ export class ResendEmailService {
       <meta charset="utf-8">
       <title>Hoşgeldiniz - Gurbetbiz</title>
       <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
-        .button { display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
-        .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; }
+        .header { background: linear-gradient(135deg, #4ade80, #22c55e); color: white; padding: 40px 20px; text-align: center; }
+        .logo { font-size: 36px; font-weight: bold; margin-bottom: 10px; }
+        .logo .gurbet { color: white; }
+        .logo .biz { color: #1f2937; }
+        .content { background: #f8fafc; padding: 40px 30px; color: #374151; }
+        .greeting { font-size: 18px; color: #374151; margin-bottom: 20px; }
+        .main-text { font-size: 16px; line-height: 1.8; margin-bottom: 25px; }
+        .features-title { font-size: 18px; font-weight: 600; color: #374151; margin: 30px 0 20px 0; display: flex; align-items: center; }
+        .features-title::before { content: '✈️'; margin-right: 10px; font-size: 20px; }
+        .features-list { list-style: none; padding: 0; margin: 0; }
+        .features-list li { padding: 8px 0; padding-left: 20px; position: relative; color: #4b5563; }
+        .features-list li::before { content: '•'; color: #22c55e; font-weight: bold; position: absolute; left: 0; }
+        .button { display: inline-block; background: linear-gradient(135deg, #4ade80, #22c55e); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; margin: 30px 0; font-weight: 600; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); }
+        .button:hover { transform: translateY(-2px); }
+        .footer { text-align: center; padding: 30px; color: #6b7280; font-size: 12px; background: #f3f4f6; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h1>🎉 Hoşgeldiniz ${userName}!</h1>
+          <div class="logo">
+            <span class="gurbet">gurbet</span><span class="biz">biz</span>
+          </div>
         </div>
         <div class="content">
-          <h2>Gurbetbiz Hesabınız Aktif!</h2>
-          <p>Merhaba <strong>${userName}</strong>,</p>
-          <p>Gurbetbiz ailesine hoşgeldiniz! Hesabınız başarıyla oluşturuldu ve artık tüm hizmetlerimizden faydalanabilirsiniz.</p>
+          <div class="greeting">Merhaba <strong>${userName}</strong>,</div>
           
-          <h3>✈️ Neler Yapabilirsiniz:</h3>
-          <ul>
+          <div class="main-text">
+            Gurbetbiz ailesine hoşgeldiniz! Hesabınız başarıyla oluşturuldu ve artık tüm hizmetlerimizden faydalanabilirsiniz.
+          </div>
+          
+          <div class="features-title">Neler Yapabilirsiniz:</div>
+          <ul class="features-list">
             <li>En uygun uçak biletlerini arayın</li>
             <li>Rezervasyonlarınızı yönetin</li>
             <li>Özel indirimlerden haberdar olun</li>
@@ -106,11 +121,8 @@ export class ResendEmailService {
           </ul>
 
           <div style="text-align: center;">
-            <a href="https://www.grbt8.store/dashboard" class="button">Hesabıma Git</a>
+            <a href="https://anasite.grbt8.store/giris" class="button">Hesabıma git</a>
           </div>
-
-          <p>Herhangi bir sorunuz olursa, bizimle iletişime geçmekten çekinmeyin.</p>
-          <p>İyi seyahatler dileriz! 🌟</p>
         </div>
         <div class="footer">
           <p>© 2024 Gurbetbiz. Tüm hakları saklıdır.</p>
