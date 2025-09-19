@@ -126,19 +126,8 @@ export class ResendEmailService {
         </div>
         
         <!-- Mobil Uygulama Tanıtımı -->
-        <div style="text-align: center; padding: 20px; background: #f8fafc;">
-          <div style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; margin: 0 auto;">
-            <h3 style="color: #22c55e; margin: 0 0 15px 0; font-size: 18px;">📱 Mobil Uygulamamızı İndirin</h3>
-            <p style="color: #6b7280; margin: 0 0 15px 0; font-size: 14px;">Her yerden kolayca rezervasyon yapın!</p>
-            <div style="display: flex; justify-content: center; gap: 10px;">
-              <a href="#" style="display: inline-block; background: #000; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-size: 12px;">
-                📱 App Store
-              </a>
-              <a href="#" style="display: inline-block; background: #22c55e; color: white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-size: 12px;">
-                🤖 Google Play
-              </a>
-            </div>
-          </div>
+        <div style="text-align: center; padding: 20px;">
+          <img src="https://www.grbt8.store/images/monappemail.png" alt="Gurbetbiz Mobil Uygulama" style="max-width: 100%; height: auto; border-radius: 10px;" />
         </div>
         
         <div class="footer">
