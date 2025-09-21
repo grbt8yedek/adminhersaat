@@ -6,10 +6,6 @@
   "regions": ["fra1"],
   "crons": [
     {
-      "path": "/api/backup/auto",
-      "schedule": "0 */6 * * *"
-    },
-    {
       "path": "/api/system/cronjob",
       "schedule": "0 2 * * *"
     }

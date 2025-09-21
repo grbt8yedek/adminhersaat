@@ -4,7 +4,7 @@ import Sidebar from '../components/layout/Sidebar'
 import Header from '../components/layout/Header'
 import AdminPanelStatus from '../components/dashboard/AdminPanelStatus'
 import MainSiteStatus from '../components/dashboard/MainSiteStatus'
-import SimpleBackup from '../components/dashboard/SimpleBackup'
+import DatabaseBackupSystem from '../components/system/DatabaseBackupSystem'
 
 export default function SistemPage() {
   const [activeTab, setActiveTab] = useState('sistem')
@@ -24,7 +24,7 @@ export default function SistemPage() {
           <div className="max-w-7xl mx-auto space-y-6">
             <MainSiteStatus />
             <AdminPanelStatus />
-            <SimpleBackup />
+            <DatabaseBackupSystem />
           </div>
         </main>
       </div>
