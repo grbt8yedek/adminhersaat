@@ -1,0 +1,149 @@
+{
+  "timestamp": "2025-09-22T20:24:54.336Z",
+  "source": "https://www.grbt8.store/uploads/",
+  "files": [
+    {
+      "path": "1756600617843.svg",
+      "size": 467,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".svg"
+    },
+    {
+      "path": "1756631502619.png",
+      "size": 1948305,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".png"
+    },
+    {
+      "path": "1756631577355.png",
+      "size": 1089885,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".png"
+    },
+    {
+      "path": "1756631862391.png",
+      "size": 1948305,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".png"
+    },
+    {
+      "path": "1756631884829.png",
+      "size": 261428,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".png"
+    },
+    {
+      "path": "1756631927360.jpg",
+      "size": 766736,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".jpg"
+    },
+    {
+      "path": "1756635917536.jpg",
+      "size": 766736,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".jpg"
+    },
+    {
+      "path": "1756636139763.jpg",
+      "size": 766736,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".jpg"
+    },
+    {
+      "path": "1756636311281.jpg",
+      "size": 766736,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".jpg"
+    },
+    {
+      "path": "1756641023498.jpg",
+      "size": 766736,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".jpg"
+    },
+    {
+      "path": "1756641259142.jpg",
+      "size": 766736,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".jpg"
+    },
+    {
+      "path": "1756641314606.png",
+      "size": 1300830,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".png"
+    },
+    {
+      "path": "1756641628163.png",
+      "size": 1948305,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".png"
+    },
+    {
+      "path": "1756651296437.png",
+      "size": 1446316,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".png"
+    },
+    {
+      "path": "1756652110475.png",
+      "size": 113853,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".png"
+    },
+    {
+      "path": "1756652143045.png",
+      "size": 1948305,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".png"
+    },
+    {
+      "path": "1756652490908.png",
+      "size": 203955,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".png"
+    },
+    {
+      "path": "1757168906558.jpeg",
+      "size": 116916,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".jpeg"
+    },
+    {
+      "path": "campaigns/campaign_1757168999084.jpeg",
+      "size": 116916,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".jpeg"
+    },
+    {
+      "path": "campaigns/campaign_1757169949749.jpeg",
+      "size": 116916,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".jpeg"
+    },
+    {
+      "path": "campaigns/campaign_1757714063183.png",
+      "size": 70,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".png"
+    },
+    {
+      "path": "test.png",
+      "size": 70,
+      "modified": "2018-10-20T01:46:40.000Z",
+      "type": ".png"
+    }
+  ],
+  "summary": {
+    "total_files": 22,
+    "total_size_bytes": 17161258,
+    "total_size_mb": "16.37 MB",
+    "file_types": [
+      ".svg",
+      ".png",
+      ".jpg",
+      ".jpeg"
+    ]
+  }
+}
