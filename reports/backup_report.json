@@ -1,0 +1,27 @@
+{
+  "timestamp": "2025-09-22T20:24:54.337Z",
+  "site": "https://www.grbt8.store/",
+  "vercel_project": "https://vercel.com/grbt8/grbt8ap",
+  "backup_id": "2025-09-22T20:24:53.748Z",
+  "duration": "589ms",
+  "status": "completed",
+  "components": {
+    "database": "success",
+    "uploads": "success",
+    "vercel": "success"
+  },
+  "stats": {
+    "database_tables": 9,
+    "database_records": 12,
+    "upload_files": 22,
+    "upload_size": "16.37 MB",
+    "vercel_projects": 1
+  },
+  "storage_optimization": {
+    "compression": "GZIP enabled",
+    "retention": "7 days auto-cleanup",
+    "estimated_monthly_size": "~200 MB (compressed)",
+    "github_limit": "10 GB (safe)"
+  },
+  "next_backup": "2025-09-23T02:24:54.337Z"
+}
