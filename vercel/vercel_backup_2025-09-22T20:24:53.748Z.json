@@ -1,0 +1,248 @@
+{
+  "timestamp": "2025-09-22T20:24:54.337Z",
+  "source": "https://vercel.com/grbt8/grbt8ap",
+  "site_url": "https://www.grbt8.store/",
+  "environment_variables": [
+    {
+      "key": "AWS_ACCESS_KEY_ID",
+      "has_value": true,
+      "length": 20
+    },
+    {
+      "key": "AWS_DEFAULT_REGION",
+      "has_value": true,
+      "length": 12
+    },
+    {
+      "key": "AWS_REGION",
+      "has_value": true,
+      "length": 12
+    },
+    {
+      "key": "AWS_SECRET_ACCESS_KEY",
+      "has_value": true,
+      "length": 40
+    },
+    {
+      "key": "AWS_SESSION_TOKEN",
+      "has_value": true,
+      "length": 1004
+    },
+    {
+      "key": "DATABASE_URL",
+      "has_value": true,
+      "length": 124
+    },
+    {
+      "key": "DATABASE_URL_UNPOOLED",
+      "has_value": true,
+      "length": 117
+    },
+    {
+      "key": "GITHUB_BACKUP_TOKEN",
+      "has_value": true,
+      "length": 40
+    },
+    {
+      "key": "GITHUB_TOKEN",
+      "has_value": true,
+      "length": 41
+    },
+    {
+      "key": "LANG",
+      "has_value": true,
+      "length": 11
+    },
+    {
+      "key": "LD_LIBRARY_PATH",
+      "has_value": true,
+      "length": 94
+    },
+    {
+      "key": "NEON_PROJECT_ID",
+      "has_value": true,
+      "length": 23
+    },
+    {
+      "key": "NEXT_DEPLOYMENT_ID",
+      "has_value": true,
+      "length": 32
+    },
+    {
+      "key": "NEXT_PUBLIC_ADMIN_API_URL",
+      "has_value": true,
+      "length": 23
+    },
+    {
+      "key": "NEXT_PUBLIC_STACK_PROJECT_ID",
+      "has_value": true,
+      "length": 36
+    },
+    {
+      "key": "NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY",
+      "has_value": true,
+      "length": 49
+    },
+    {
+      "key": "NOW_REGION",
+      "has_value": true,
+      "length": 4
+    },
+    {
+      "key": "NX_DAEMON",
+      "has_value": true,
+      "length": 5
+    },
+    {
+      "key": "PGDATABASE",
+      "has_value": true,
+      "length": 6
+    },
+    {
+      "key": "PGHOST",
+      "has_value": true,
+      "length": 58
+    },
+    {
+      "key": "PGHOST_UNPOOLED",
+      "has_value": true,
+      "length": 51
+    },
+    {
+      "key": "PGPASSWORD",
+      "has_value": true,
+      "length": 16
+    },
+    {
+      "key": "PGUSER",
+      "has_value": true,
+      "length": 12
+    },
+    {
+      "key": "POSTGRES_DATABASE",
+      "has_value": true,
+      "length": 6
+    },
+    {
+      "key": "POSTGRES_HOST",
+      "has_value": true,
+      "length": 58
+    },
+    {
+      "key": "POSTGRES_PASSWORD",
+      "has_value": true,
+      "length": 16
+    },
+    {
+      "key": "POSTGRES_PRISMA_URL",
+      "has_value": true,
+      "length": 143
+    },
+    {
+      "key": "POSTGRES_URL",
+      "has_value": true,
+      "length": 124
+    },
+    {
+      "key": "POSTGRES_URL_NON_POOLING",
+      "has_value": true,
+      "length": 117
+    },
+    {
+      "key": "POSTGRES_URL_NO_SSL",
+      "has_value": true,
+      "length": 108
+    },
+    {
+      "key": "POSTGRES_USER",
+      "has_value": true,
+      "length": 12
+    },
+    {
+      "key": "RESEND_API_KEY",
+      "has_value": true,
+      "length": 37
+    },
+    {
+      "key": "RESEND_FROM",
+      "has_value": true,
+      "length": 20
+    },
+    {
+      "key": "SHLVL",
+      "has_value": true,
+      "length": 1
+    },
+    {
+      "key": "STACK_SECRET_SERVER_KEY",
+      "has_value": true,
+      "length": 49
+    },
+    {
+      "key": "TURBO_CACHE",
+      "has_value": true,
+      "length": 9
+    },
+    {
+      "key": "TURBO_DOWNLOAD_LOCAL_ENABLED",
+      "has_value": true,
+      "length": 4
+    },
+    {
+      "key": "TURBO_PLATFORM_ENV",
+      "has_value": true,
+      "length": 424
+    },
+    {
+      "key": "TURBO_REMOTE_ONLY",
+      "has_value": true,
+      "length": 4
+    },
+    {
+      "key": "TURBO_RUN_SUMMARY",
+      "has_value": true,
+      "length": 4
+    },
+    {
+      "key": "TZ",
+      "has_value": true,
+      "length": 4
+    },
+    {
+      "key": "VERCEL",
+      "has_value": true,
+      "length": 1
+    },
+    {
+      "key": "__NEXT_PRIVATE_PREBUNDLED_REACT",
+      "has_value": true,
+      "length": 4
+    },
+    {
+      "key": "__NEXT_OPTIMIZE_FONTS",
+      "has_value": true,
+      "length": 4
+    },
+    {
+      "key": "__NEXT_PRIVATE_RUNTIME_TYPE",
+      "has_value": false,
+      "length": 0
+    },
+    {
+      "key": "SSL_CERT_FILE",
+      "has_value": true,
+      "length": 49
+    },
+    {
+      "key": "SSL_CERT_DIR",
+      "has_value": true,
+      "length": 18
+    }
+  ],
+  "deployment_info": {
+    "vercel_url": "grbt8ap-9aqarjbsy-grbt8.vercel.app",
+    "vercel_env": "production",
+    "vercel_region": "fra1",
+    "node_version": "v22.15.1"
+  }
+}
