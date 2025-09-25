@@ -1,0 +1,19 @@
+name: Admin Backup - Hourly Trigger
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  trigger-backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Call backup endpoint
+        run: |
+          set -euo pipefail
+          curl -sS --fail --max-time 90 --retry 2 --retry-delay 5 \
+            "https://www.grbt8.store/api/database-backup/github" | jq .success
+      - name: Print time
+        run: date -u
